@@ -172,4 +172,36 @@ describe("database schema and constraints", () => {
   it("8. running runMigrations a second time on the same DB does not throw", async () => {
     await expect(runMigrations(db)).resolves.not.toThrow();
   });
+
+  it("9. verifies all columns across all 5 tables are snake_case", async () => {
+    const tableNames = [
+      "users",
+      "reflections",
+      "interactions",
+      "interaction_notes",
+      "news_items",
+    ];
+
+    const snakeCaseRegex = /^[a-z][a-z0-9_]*$/;
+    let newsItemColumns: string[] = [];
+
+    for (const table of tableNames) {
+      const info = await client.execute(`PRAGMA table_info(${table})`);
+      const colNames = info.rows.map((row) => row.name as string);
+
+      if (table === "news_items") {
+        newsItemColumns = colNames;
+      }
+
+      for (const colName of colNames) {
+        expect(colName).toMatch(snakeCaseRegex);
+      }
+    }
+
+    expect(newsItemColumns).toContain("source_name");
+    expect(newsItemColumns).toContain("source_url");
+    expect(newsItemColumns).toContain("source_text");
+    expect(newsItemColumns).toContain("fact_summary");
+    expect(newsItemColumns).toContain("why_it_matters");
+  });
 });

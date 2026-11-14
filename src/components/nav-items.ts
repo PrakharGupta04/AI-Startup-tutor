@@ -4,4 +4,8 @@ export interface NavItem {
   instructorOnly?: boolean;
 }
 
-export const navItems: NavItem[] = [];
+export const navItems: NavItem[] = [
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Members", href: "/settings/members", instructorOnly: true },
+  { label: "Settings", href: "/settings" },
+];
