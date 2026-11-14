@@ -1,69 +1,166 @@
-import Image from "next/image";
+import { count } from "drizzle-orm";
+import { getEnv, type AppEnv } from "@/lib/env";
+import { getDb } from "@/lib/db/client";
+import { users } from "@/lib/db/schema";
+import { AppShell } from "@/components/app-shell";
+import { Card, Badge, type BadgeVariant } from "@/components/ui";
 
-export default function Home() {
+export const instant = false;
+
+export default async function StatusPage() {
+  // Check 1: Environment
+  let env: AppEnv | null = null;
+  let envError: string | null = null;
+  try {
+    env = getEnv();
+  } catch (error) {
+    envError = error instanceof Error ? error.message : "Unknown error";
+  }
+
+  // Check 2: Database
+  let dbConnected = false;
+  let userCount = 0;
+  let dbError: string | null = null;
+  try {
+    const db = getDb();
+    const result = await db.select({ value: count() }).from(users);
+    userCount = result[0]?.value ?? 0;
+    dbConnected = true;
+  } catch (error) {
+    dbError = error instanceof Error ? error.message : "Unknown error";
+  }
+
+  // Check 3: AI Provider
+  let aiStatus: {
+    providerName: string;
+    badgeText: string;
+    badgeVariant: BadgeVariant;
+  } = {
+    providerName: env ? env.AI_PROVIDER : "Unknown",
+    badgeText: "Configuration error",
+    badgeVariant: "danger",
+  };
+
+  if (env) {
+    const provider = env.AI_PROVIDER;
+    const hasKey = Boolean(env.GEMINI_API_KEY && env.GEMINI_API_KEY.trim() !== "");
+
+    if (provider === "demo") {
+      aiStatus = {
+        providerName: "demo",
+        badgeText: "Demo mode: responses are not real AI",
+        badgeVariant: "info",
+      };
+    } else if (provider === "gemini") {
+      if (hasKey) {
+        aiStatus = {
+          providerName: "gemini",
+          badgeText: "Configured",
+          badgeVariant: "success",
+        };
+      } else {
+        aiStatus = {
+          providerName: "gemini",
+          badgeText: "No API key: AI features disabled",
+          badgeVariant: "warning",
+        };
+      }
+    }
+  }
+
+  const groupName = env ? env.GROUP_NAME : "Setup";
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <AppShell groupName={groupName}>
+      <Card title="System status">
+        <div className="divide-y divide-slate-100">
+          {/* Row 1: Environment */}
+          <div className="py-4 first:pt-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-800">
+                  Environment
+                </h3>
+                {env && (
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Environment configuration loaded successfully
+                  </p>
+                )}
+                {envError && (
+                  <div className="mt-1">
+                    <pre className="text-xs text-rose-700 whitespace-pre-wrap break-words font-mono">
+                      {envError}
+                    </pre>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Hint: Edit .env.local
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="self-start sm:self-center">
+                {env ? (
+                  <Badge variant="success">Configured</Badge>
+                ) : (
+                  <Badge variant="danger">Invalid</Badge>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Row 2: Database */}
+          <div className="py-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-800">
+                  Database
+                </h3>
+                {dbConnected ? (
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    Users registered: {userCount}
+                  </p>
+                ) : (
+                  <div className="mt-1">
+                    {dbError && (
+                      <p className="text-xs text-rose-700 font-mono">
+                        {dbError}
+                      </p>
+                    )}
+                    <p className="text-xs text-slate-500 mt-1">
+                      Hint: Run npm run db:migrate
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="self-start sm:self-center">
+                {dbConnected ? (
+                  <Badge variant="success">Connected</Badge>
+                ) : (
+                  <Badge variant="danger">Failed</Badge>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Row 3: AI Provider */}
+          <div className="py-4 last:pb-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-800">
+                  AI provider
+                </h3>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Configured provider: {aiStatus.providerName}
+                </p>
+              </div>
+              <div className="self-start sm:self-center">
+                <Badge variant={aiStatus.badgeVariant}>
+                  {aiStatus.badgeText}
+                </Badge>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </Card>
+    </AppShell>
   );
 }
