@@ -68,6 +68,14 @@ The AI Tutor provides interactive innovation coaching with a shared log accessib
 - **Community Group Notes**: Cohort members can append follow-up notes, context, or corrections to any interaction. Group notes are visually separated from the AI response and clearly attributed.
 - **Permissions and Moderation**: Question prompts and AI responses cannot be altered. Instructors can permanently delete any interaction (which automatically cascades to all associated notes). Notes can be edited only by their author, and can be deleted by either the author or an instructor.
 
+## Collaboration news
+Instructors curate and publish corporate–startup collaboration news manually:
+- **Instructor Manual Curation**: Instructors add news items by entering the headline, companies involved, source name, verifiable link (HTTP/HTTPS), and article text.
+- **AI Summarization**: The AI works strictly from the pasted article text and never fetches or opens external links. Pasted text is saved to the database before the AI request runs.
+- **Separated Reporting and Interpretation**: Every news item displays reported facts (from the source) and interpretation (why it matters for collaboration) in separate blocks.
+- **Role-Based Visibility**: Raw article text is visible strictly to instructors. Cohort members only see published news items.
+- **Publishing Safeguards**: Items can only be published once both the factual summary and interpretation fields are populated.
+
 ## Environment Variables
 The following environment variables are supported in `.env.example` and validated via Zod:
 
@@ -135,4 +143,4 @@ The following items are intentionally deferred for subsequent phases and future 
 - Multi-group and multi-tenant partitioning
 
 ## Project Status
-Phase 5 of 7 complete: tutor and shared log
+Phase 6 of 7 complete: collaboration news

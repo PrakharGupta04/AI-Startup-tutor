@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ROLES } from "./constants";
+import { ROLES, NEWS_CATEGORIES, type NewsCategory } from "./constants";
 import { AppError } from "./errors";
 import { AI_INPUT_LIMITS } from "./ai/types";
 
@@ -95,20 +95,22 @@ export const setRoleSchema = z.object({
   role: roleSchema,
 });
 
+export function isValidCalendarDate(val: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(val)) return false;
+  const parts = val.split("-").map(Number);
+  if (parts.length !== 3) return false;
+  const [year, month, day] = parts;
+  const d = new Date(Date.UTC(year, month - 1, day));
+  return (
+    d.getUTCFullYear() === year &&
+    d.getUTCMonth() === month - 1 &&
+    d.getUTCDate() === day
+  );
+}
+
 const calendarDateSchema = z
   .string({ message: "Enter a valid date." })
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid date.")
-  .refine((val) => {
-    const parts = val.split("-").map(Number);
-    if (parts.length !== 3) return false;
-    const [year, month, day] = parts;
-    const d = new Date(Date.UTC(year, month - 1, day));
-    return (
-      d.getUTCFullYear() === year &&
-      d.getUTCMonth() === month - 1 &&
-      d.getUTCDate() === day
-    );
-  }, "Enter a valid date.");
+  .refine(isValidCalendarDate, "Enter a valid date.");
 
 export const reflectionSaveSchema = z.object({
   id: z
@@ -273,6 +275,108 @@ export const noteIdSchema = z.object({
       .transform(Number)
       .pipe(z.number().int().positive("Invalid note ID.")),
   ]),
+});
+
+export const newsSaveSchema = z.object({
+  id: z
+    .union([
+      z.number().int().positive("Invalid news ID."),
+      z
+        .string()
+        .regex(/^\d+$/, "Invalid news ID.")
+        .transform(Number)
+        .pipe(z.number().int().positive("Invalid news ID.")),
+    ])
+    .optional(),
+  category: z.enum(NEWS_CATEGORIES, { message: "Choose a category." }),
+  headline: z
+    .string({ message: "Headline is required." })
+    .trim()
+    .min(1, "Headline is required.")
+    .max(300, "Headline must be at most 300 characters."),
+  companies: z
+    .string()
+    .trim()
+    .max(300, "Companies must be at most 300 characters.")
+    .default(""),
+  publishedOn: z
+    .union([z.string(), z.null(), z.undefined()])
+    .optional()
+    .transform((val) => (val && val.trim() ? val.trim() : null))
+    .refine(
+      (val) => val === null || isValidCalendarDate(val),
+      "Enter a valid date."
+    ),
+  sourceName: z
+    .string({ message: "Source name is required." })
+    .trim()
+    .min(1, "Source name is required.")
+    .max(150, "Source name must be at most 150 characters."),
+  sourceUrl: z
+    .string({ message: "Source URL is required." })
+    .trim()
+    .min(1, "Source URL is required.")
+    .max(2000, "Source URL must be at most 2000 characters.")
+    .refine((val) => {
+      try {
+        const parsed = new URL(val);
+        return parsed.protocol === "http:" || parsed.protocol === "https:";
+      } catch {
+        return false;
+      }
+    }, "Enter a full link starting with http:// or https://"),
+  sourceText: z
+    .string()
+    .max(
+      AI_INPUT_LIMITS.sourceText,
+      `Source text must be at most ${AI_INPUT_LIMITS.sourceText} characters.`
+    )
+    .default(""),
+  factSummary: z
+    .string()
+    .max(3000, "Fact summary must be at most 3000 characters.")
+    .default(""),
+  whyItMatters: z
+    .string()
+    .max(3000, "Why it matters must be at most 3000 characters.")
+    .default(""),
+});
+
+export const newsIdSchema = z.object({
+  id: z.union([
+    z.number().int().positive("Invalid news ID."),
+    z
+      .string()
+      .regex(/^\d+$/, "Invalid news ID.")
+      .transform(Number)
+      .pipe(z.number().int().positive("Invalid news ID.")),
+  ]),
+});
+
+export const newsListSchema = z.object({
+  category: z
+    .unknown()
+    .optional()
+    .transform((val) => {
+      if (
+        typeof val === "string" &&
+        (NEWS_CATEGORIES as readonly string[]).includes(val)
+      ) {
+        return val as NewsCategory;
+      }
+      return undefined;
+    }),
+  page: z
+    .union([
+      z.number().int().positive(),
+      z
+        .string()
+        .regex(/^\d+$/)
+        .transform(Number)
+        .pipe(z.number().int().positive()),
+    ])
+    .catch(1)
+    .default(1),
 });
 
 export function parseInput<T>(schema: z.ZodType<T>, input: unknown): T {
