@@ -5,7 +5,9 @@ import { getDb } from "@/lib/db/client";
 import { getReflection } from "@/lib/data/reflections";
 import { isInstructor } from "@/lib/permissions";
 import { AppError } from "@/lib/errors";
-import { Card, Badge } from "@/components/ui";
+import { Card, Badge, ButtonLink } from "@/components/ui";
+import { PageHeader } from "@/components/page-header";
+import { Avatar } from "@/components/avatar";
 import { DeleteReflectionButton } from "@/components/delete-reflection-button";
 import { formatDate } from "@/lib/format";
 
@@ -50,109 +52,97 @@ export default async function ReflectionDetailPage(
   ];
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto w-full">
+    <div className="space-y-6 max-w-3xl mx-auto w-full">
       <div>
         <Link
           href="/reflections"
-          className="text-sm font-medium text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 mb-2"
+          className="text-xs font-medium text-accent hover:underline inline-flex items-center gap-1 mb-2"
         >
           ← Back to reflections
         </Link>
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mt-1">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 break-words">
-              {reflection.sessionTitle}
-            </h1>
-            <div className="text-xs text-slate-500 flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
-              <span>
-                Session date:{" "}
-                <span className="font-medium text-slate-700">
-                  {reflection.sessionDate}
-                </span>
-              </span>
-              <span>•</span>
-              <span>
-                Author:{" "}
-                <span className="font-medium text-slate-700">
-                  {reflection.authorName}
-                </span>
-              </span>
-              <span>•</span>
-              <span>
-                Created:{" "}
-                <span className="font-medium text-slate-700">
-                  {formatDate(reflection.createdAt)}
-                </span>
-              </span>
-              {reflection.submittedAt && (
-                <>
-                  <span>•</span>
-                  <span>
-                    Submitted:{" "}
-                    <span className="font-medium text-slate-700">
-                      {formatDate(reflection.submittedAt)}
-                    </span>
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 flex-wrap shrink-0">
-            {reflection.status === "DRAFT" ? (
-              <Badge variant="warning">Draft</Badge>
-            ) : (
-              <Badge variant="success">Submitted</Badge>
-            )}
-            {reflection.aiStructured && (
-              <Badge variant="info">AI-structured</Badge>
-            )}
-          </div>
-        </div>
+        <PageHeader
+          title={reflection.sessionTitle}
+          actions={
+            (isAuthor || canDelete) && (
+              <div className="flex items-center gap-2 flex-wrap">
+                {isAuthor && (
+                  <ButtonLink
+                    href={`/reflections/${reflection.id}/edit`}
+                    variant="primary"
+                    size="sm"
+                  >
+                    Edit reflection
+                  </ButtonLink>
+                )}
+                {canDelete && <DeleteReflectionButton id={reflection.id} />}
+              </div>
+            )
+          }
+        />
       </div>
 
-      {/* Action buttons */}
-      {(isAuthor || canDelete) && (
-        <div className="flex items-center gap-3 pt-2">
-          {isAuthor && (
-            <Link
-              href={`/reflections/${reflection.id}/edit`}
-              className="inline-flex items-center justify-center min-h-[40px] px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              Edit reflection
-            </Link>
+      {/* Meta row */}
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-ink-muted pb-4 border-b border-line">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Avatar name={reflection.authorName} size="sm" />
+          <span className="font-medium text-ink">{reflection.authorName}</span>
+          <span>•</span>
+          <span>Session date: {reflection.sessionDate}</span>
+          {reflection.submittedAt ? (
+            <>
+              <span>•</span>
+              <span>Submitted: {formatDate(reflection.submittedAt)}</span>
+            </>
+          ) : (
+            <>
+              <span>•</span>
+              <span>Created: {formatDate(reflection.createdAt)}</span>
+            </>
           )}
-          {canDelete && <DeleteReflectionButton id={reflection.id} />}
         </div>
-      )}
+
+        <div className="flex items-center gap-2">
+          {reflection.status === "DRAFT" ? (
+            <Badge variant="neutral">Draft</Badge>
+          ) : (
+            <Badge variant="success">Submitted</Badge>
+          )}
+          {reflection.aiStructured && (
+            <Badge variant="ai">AI-structured</Badge>
+          )}
+        </div>
+      </div>
 
       {/* Structured Fields */}
       <div className="space-y-4">
         {structuredSections.map((section) => (
-          <Card key={section.label} title={section.label}>
+          <Card key={section.label} className="space-y-2">
+            <h2 className="text-xs font-semibold text-ink-subtle uppercase tracking-wider">
+              {section.label}
+            </h2>
             {section.value && section.value.trim() !== "" ? (
-              <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">
+              <div className="text-[15px] text-ink whitespace-pre-wrap leading-relaxed">
                 {section.value}
               </div>
             ) : (
-              <p className="text-sm italic text-slate-400">None</p>
+              <p className="text-sm italic text-ink-subtle">None</p>
             )}
           </Card>
         ))}
       </div>
 
       {/* Collapsed Original Notes */}
-      <details className="group rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <summary className="cursor-pointer text-sm font-semibold text-slate-900 select-none">
+      <details className="bg-surface border border-line rounded-lg p-5">
+        <summary className="cursor-pointer text-sm font-semibold text-ink select-none hover:text-brand transition-colors">
           Original notes
         </summary>
-        <div className="mt-3 pt-3 border-t border-slate-100">
+        <div className="mt-3 pt-3 border-t border-line">
           {reflection.rawNotes && reflection.rawNotes.trim() !== "" ? (
-            <div className="text-sm text-slate-800 whitespace-pre-wrap font-mono bg-slate-50 p-3 rounded-md border border-slate-200 overflow-x-auto leading-relaxed">
+            <div className="text-sm text-ink whitespace-pre-wrap font-mono bg-canvas p-4 rounded-md border border-line overflow-x-auto leading-relaxed">
               {reflection.rawNotes}
             </div>
           ) : (
-            <p className="text-sm italic text-slate-400">
+            <p className="text-sm italic text-ink-subtle">
               No original notes recorded.
             </p>
           )}

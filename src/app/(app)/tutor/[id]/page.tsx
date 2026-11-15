@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Sparkles, MessageSquare } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db/client";
 import { getInteraction } from "@/lib/data/tutor";
@@ -10,6 +11,7 @@ import { RetryButton } from "@/components/retry-button";
 import { NoteItem } from "@/components/note-item";
 import { NoteForm } from "@/components/note-form";
 import { DeleteInteractionButton } from "@/components/delete-interaction-button";
+import { Avatar } from "@/components/avatar";
 import { formatDateTime } from "@/lib/format";
 
 export const instant = false;
@@ -45,37 +47,44 @@ export default async function TutorDetailPage(props: TutorDetailPageProps) {
       <div>
         <Link
           href="/tutor"
-          className="text-sm font-medium text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 mb-2"
+          className="text-xs font-medium text-accent hover:underline inline-flex items-center gap-1 mb-2"
         >
           ← Back to the log
         </Link>
       </div>
 
-      {/* Question card */}
-      <Card className="p-6">
-        <div className="text-xs text-slate-500 mb-2">
-          Asked by <span className="font-semibold text-slate-700">{interaction.authorName}</span> ·{" "}
-          {formatDateTime(new Date(interaction.createdAt))}
+      {/* Block 1: Question card with canvas panel */}
+      <Card className="p-6 space-y-3">
+        <div className="flex items-center gap-2 flex-wrap text-xs text-ink-muted">
+          <Avatar name={interaction.authorName} size="sm" />
+          <span className="font-semibold text-ink">
+            {interaction.authorName}
+          </span>
+          <span>·</span>
+          <span>{formatDateTime(new Date(interaction.createdAt))}</span>
         </div>
-        <h1 className="text-lg font-semibold text-slate-900 mb-3">Question</h1>
-        <div className="text-slate-800 whitespace-pre-wrap leading-relaxed">
+
+        <div className="bg-canvas border border-line rounded-md p-4 text-[15px] text-ink whitespace-pre-wrap leading-relaxed">
           {interaction.prompt}
         </div>
       </Card>
 
-      {/* AI Tutor card */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+      {/* Block 2: AI Answer on ai-soft panel */}
+      <div className="rounded-lg border border-ai-line bg-ai-soft p-6 space-y-4">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
-            <Badge variant="info">AI Tutor</Badge>
+            <Sparkles className="h-4 w-4 text-ai" strokeWidth={1.75} />
+            <span className="font-semibold text-ai">AI Tutor</span>
             {interaction.model === "demo" ? (
               <Badge variant="warning">Demo</Badge>
             ) : interaction.model ? (
-              <span className="text-xs text-slate-500">{interaction.model}</span>
+              <span className="text-xs text-ink-subtle font-mono">
+                {interaction.model}
+              </span>
             ) : null}
           </div>
           {interaction.completedAt && (
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-ink-subtle">
               Answered {formatDateTime(new Date(interaction.completedAt))}
             </span>
           )}
@@ -84,7 +93,7 @@ export default async function TutorDetailPage(props: TutorDetailPageProps) {
         {interaction.status === "COMPLETED" && (
           <div className="space-y-4">
             <Markdown>{interaction.response || ""}</Markdown>
-            <p className="text-xs text-slate-400 pt-2 border-t border-slate-100">
+            <p className="text-xs text-ink-subtle pt-3 border-t border-ai-line/60">
               AI answers can contain mistakes. Verify important facts.
             </p>
           </div>
@@ -92,10 +101,13 @@ export default async function TutorDetailPage(props: TutorDetailPageProps) {
 
         {interaction.status === "FAILED" && (
           <div className="space-y-3">
-            <div className="p-4 rounded-md bg-rose-50 border border-rose-200 text-sm text-rose-800">
-              <p className="font-medium">The AI tutor could not complete this request.</p>
-              <p className="mt-1 text-xs text-rose-700">
-                {interaction.errorMessage || "Something went wrong. Please try again."}
+            <div className="p-4 rounded-md bg-danger-soft border border-danger/20 text-sm text-danger">
+              <p className="font-semibold">
+                The AI tutor could not complete this request.
+              </p>
+              <p className="mt-1 text-xs">
+                {interaction.errorMessage ||
+                  "Something went wrong. Please try again."}
               </p>
             </div>
             {isAuthor && (
@@ -107,24 +119,33 @@ export default async function TutorDetailPage(props: TutorDetailPageProps) {
         )}
 
         {interaction.status === "PENDING" && (
-          <div className="p-4 rounded-md bg-slate-50 border border-slate-200 text-sm text-slate-600">
+          <div className="p-4 rounded-md bg-canvas border border-line text-sm text-ink-muted italic">
             Waiting for the AI…
           </div>
         )}
-      </Card>
+      </div>
 
-      {/* Group notes card */}
-      <Card className="p-6 bg-slate-50 border-slate-300">
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold text-slate-900">Group notes</h2>
-          <p className="text-xs text-slate-600 mt-0.5">
-            Added by members. These are not part of the AI&apos;s answer.
-          </p>
+      {/* Block 3: Group notes card with border-l-4 border-brand */}
+      <Card className="p-6 border-l-4 border-l-brand space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold text-ink flex items-center gap-2">
+              <MessageSquare className="h-4 w-4 text-brand" strokeWidth={1.75} />
+              <span>Group notes</span>
+            </h2>
+            <p className="text-xs text-ink-muted mt-0.5">
+              Added by members. These are not part of the AI&apos;s answer.
+            </p>
+          </div>
+          <span className="text-xs font-medium text-ink-muted">
+            {interaction.notes.length}{" "}
+            {interaction.notes.length === 1 ? "note" : "notes"}
+          </span>
         </div>
 
-        <div className="space-y-3 mb-6">
+        <div className="space-y-3 pt-2">
           {interaction.notes.length === 0 ? (
-            <p className="text-sm italic text-slate-400">No notes yet.</p>
+            <p className="text-sm italic text-ink-subtle">No notes yet.</p>
           ) : (
             interaction.notes.map((note) => (
               <NoteItem
@@ -140,14 +161,14 @@ export default async function TutorDetailPage(props: TutorDetailPageProps) {
         <NoteForm interactionId={interaction.id} />
       </Card>
 
-      {/* Instructor actions */}
+      {/* Instructor controls */}
       {isInstructor && (
-        <Card className="p-4 border-rose-200 bg-rose-50/50 flex items-center justify-between gap-4">
+        <Card className="p-4 border-line bg-surface flex items-center justify-between gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">
+            <h3 className="text-sm font-semibold text-ink">
               Instructor controls
             </h3>
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-ink-muted">
               Delete this question, its AI answer, and all group notes permanently.
             </p>
           </div>

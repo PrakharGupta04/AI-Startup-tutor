@@ -13,7 +13,16 @@
     "db:migrate": "tsx --env-file=.env.local scripts/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "set-password": "tsx --env-file=.env.local scripts/set-password.ts",
-    "ai-check": "tsx --env-file=.env.local scripts/ai-check.ts"
+    "set-password:prod": "tsx --env-file=.env.production.local scripts/set-password.ts",
+    "ai-check": "tsx --env-file=.env.local scripts/ai-check.ts",
+    "db:migrate:prod": "tsx --env-file=.env.production.local scripts/migrate.ts",
+    "db:check": "tsx --env-file=.env.local scripts/db-check.ts",
+    "db:check:prod": "tsx --env-file=.env.production.local scripts/db-check.ts",
+    "db:backup": "tsx --env-file=.env.local scripts/db-backup.ts",
+    "db:backup:prod": "tsx --env-file=.env.production.local scripts/db-backup.ts"
+  },
+  "engines": {
+    "node": ">=22"
   },
   "dependencies": {
     "@google/genai": "^3.3.0",

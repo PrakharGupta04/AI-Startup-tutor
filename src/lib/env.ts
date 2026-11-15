@@ -55,10 +55,35 @@ const appEnvSchema = databaseEnvSchema
       emptyToUndefined,
       z.string().default("gemini-3.6-flash")
     ),
+    NODE_ENV: z.preprocess(emptyToUndefined, z.string().optional()),
   })
   .refine((data) => data.GROUP_JOIN_CODE !== data.INSTRUCTOR_CODE, {
     message: "must differ from GROUP_JOIN_CODE",
     path: ["INSTRUCTOR_CODE"],
+  })
+  .superRefine((data, ctx) => {
+    if (data.NODE_ENV === "production") {
+      if (
+        typeof data.GROUP_JOIN_CODE === "string" &&
+        data.GROUP_JOIN_CODE.length < 12
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "must be at least 12 characters in production",
+          path: ["GROUP_JOIN_CODE"],
+        });
+      }
+      if (
+        typeof data.INSTRUCTOR_CODE === "string" &&
+        data.INSTRUCTOR_CODE.length < 12
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "must be at least 12 characters in production",
+          path: ["INSTRUCTOR_CODE"],
+        });
+      }
+    }
   });
 
 export type DatabaseEnv = z.infer<typeof databaseEnvSchema>;

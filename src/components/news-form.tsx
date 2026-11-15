@@ -21,6 +21,7 @@ import {
   Textarea,
   Select,
   Badge,
+  Card,
 } from "@/components/ui";
 import { ErrorMessage } from "@/components/error-message";
 
@@ -98,6 +99,7 @@ export function NewsForm({
     startTransition(async () => {
       try {
         const result = await saveNewsAction(getPayload());
+
         if (!result.ok) {
           setGeneralError(result.error);
           if (result.fieldErrors) {
@@ -106,8 +108,13 @@ export function NewsForm({
           return;
         }
 
-        setId(result.data.id);
-        setSuccessMessage("Saved.");
+        const newId = result.data.id;
+        setId(newId);
+        setSuccessMessage("News item saved.");
+
+        if (!id) {
+          router.replace(`/news/manage/${newId}`);
+        }
       } finally {
         setPendingAction(null);
       }
@@ -117,23 +124,15 @@ export function NewsForm({
   const handleGenerate = () => {
     clearFeedback();
 
-    const hasExistingSummary =
-      Boolean(factSummary.trim()) || Boolean(whyItMatters.trim());
-
-    if (hasExistingSummary) {
-      const confirmed = window.confirm(
-        "This will replace the summary fields. Continue?"
-      );
-      if (!confirmed) {
-        return;
-      }
+    if (!sourceText.trim()) {
+      setGeneralError("Please enter article text before generating summaries.");
+      return;
     }
 
     setPendingAction("generating");
 
     startTransition(async () => {
       try {
-        // 1. Save changes first so pasted text is persisted
         const saveResult = await saveNewsAction(getPayload());
         if (!saveResult.ok) {
           setGeneralError(saveResult.error);
@@ -143,23 +142,23 @@ export function NewsForm({
           return;
         }
 
-        const savedId = saveResult.data.id;
-        setId(savedId);
+        const targetId = saveResult.data.id;
+        setId(targetId);
 
-        // 2. Call AI summarization
-        const summaryResult = await generateNewsAction({ id: savedId });
-        if (!summaryResult.ok) {
-          setGeneralError(summaryResult.error);
-          if (summaryResult.fieldErrors) {
-            setFieldErrors(summaryResult.fieldErrors);
-          }
+        const genResult = await generateNewsAction({ id: targetId });
+        if (!genResult.ok) {
+          setGeneralError(genResult.error);
           return;
         }
 
-        setFactSummary(summaryResult.data.factSummary);
-        setWhyItMatters(summaryResult.data.whyItMatters);
+        setFactSummary(genResult.data.factSummary);
+        setWhyItMatters(genResult.data.whyItMatters);
         setAiAssisted(true);
-        setSuccessMessage("Generated. Review and edit before publishing.");
+        setSuccessMessage("Summary generated with AI. Please review and edit.");
+
+        if (!id) {
+          router.replace(`/news/manage/${targetId}`);
+        }
       } finally {
         setPendingAction(null);
       }
@@ -172,7 +171,6 @@ export function NewsForm({
 
     startTransition(async () => {
       try {
-        // 1. Save all fields first
         const saveResult = await saveNewsAction(getPayload());
         if (!saveResult.ok) {
           setGeneralError(saveResult.error);
@@ -182,11 +180,10 @@ export function NewsForm({
           return;
         }
 
-        const savedId = saveResult.data.id;
-        setId(savedId);
+        const targetId = saveResult.data.id;
+        setId(targetId);
 
-        // 2. Call publish
-        const pubResult = await publishNewsAction({ id: savedId });
+        const pubResult = await publishNewsAction({ id: targetId });
         if (!pubResult.ok) {
           setGeneralError(pubResult.error);
           if (pubResult.fieldErrors) {
@@ -195,7 +192,12 @@ export function NewsForm({
           return;
         }
 
-        router.push("/news");
+        setStatus("PUBLISHED");
+        setSuccessMessage("News item published.");
+
+        if (!id) {
+          router.replace(`/news/manage/${targetId}`);
+        }
       } finally {
         setPendingAction(null);
       }
@@ -216,7 +218,7 @@ export function NewsForm({
         }
 
         setStatus("DRAFT");
-        setSuccessMessage("Moved back to drafts.");
+        setSuccessMessage("News item returned to draft status.");
       } finally {
         setPendingAction(null);
       }
@@ -226,11 +228,9 @@ export function NewsForm({
   const handleDelete = () => {
     if (!id) return;
     const confirmed = window.confirm(
-      "Delete this news item? This cannot be undone."
+      "Are you sure you want to delete this news item? This cannot be undone."
     );
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     clearFeedback();
     setPendingAction("deleting");
@@ -251,33 +251,36 @@ export function NewsForm({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Notifications */}
+    <div className="space-y-6 max-w-3xl mx-auto w-full">
       {generalError && <ErrorMessage message={generalError} />}
+
       {successMessage && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm rounded-md">
+        <div
+          role="status"
+          className="rounded-md border border-success/20 bg-success-soft p-4 text-sm text-success"
+        >
           {successMessage}
         </div>
       )}
 
-      {/* Status banner if published */}
       {status === "PUBLISHED" && (
-        <div className="flex items-center gap-2 p-3 bg-sky-50 border border-sky-200 text-sky-800 text-sm rounded-md flex-wrap">
+        <div className="flex items-center gap-2 p-3 bg-canvas border border-line text-ink text-sm rounded-md flex-wrap">
           <Badge variant="success">Published</Badge>
-          {aiAssisted && <Badge variant="info">AI-assisted</Badge>}
-          <span>This news item is visible to all cohort members.</span>
+          <span>Visible to cohort members.</span>
         </div>
       )}
+
       {status === "DRAFT" && aiAssisted && (
-        <div className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-md flex-wrap">
-          <Badge variant="warning">Draft</Badge>
-          <Badge variant="info">AI-assisted</Badge>
+        <div className="flex items-center gap-2 p-3 bg-canvas border border-line text-ink text-sm rounded-md flex-wrap">
+          <Badge variant="neutral">Draft</Badge>
+          <Badge variant="ai">AI-assisted</Badge>
           <span>Summary generated with AI. Review and edit before publishing.</span>
         </div>
       )}
 
-      <div className="space-y-4">
-        {/* 1. Category */}
+      {/* Card 1: Details */}
+      <Card title="Details" className="space-y-4">
+        {/* Category */}
         <Field
           label="Category"
           htmlFor="category"
@@ -299,7 +302,7 @@ export function NewsForm({
           </Select>
         </Field>
 
-        {/* 2. Headline */}
+        {/* Headline */}
         <Field
           label="Headline"
           htmlFor="headline"
@@ -316,7 +319,7 @@ export function NewsForm({
           />
         </Field>
 
-        {/* 3. Companies involved */}
+        {/* Companies involved */}
         <Field
           label="Companies involved"
           htmlFor="companies"
@@ -333,7 +336,7 @@ export function NewsForm({
           />
         </Field>
 
-        {/* 4. Source name */}
+        {/* Source name */}
         <Field
           label="Source name"
           htmlFor="sourceName"
@@ -350,7 +353,7 @@ export function NewsForm({
           />
         </Field>
 
-        {/* 5. Source link */}
+        {/* Source link */}
         <Field
           label="Source link"
           htmlFor="sourceUrl"
@@ -368,7 +371,7 @@ export function NewsForm({
           />
         </Field>
 
-        {/* 6. Published date */}
+        {/* Published date */}
         <Field
           label="Published date"
           htmlFor="publishedOn"
@@ -383,8 +386,10 @@ export function NewsForm({
             disabled={isPending}
           />
         </Field>
+      </Card>
 
-        {/* 7. Article text or notes */}
+      {/* Card 2: Source text */}
+      <Card title="Source text" className="space-y-4">
         <Field
           label="Article text or your notes"
           htmlFor="sourceText"
@@ -398,10 +403,43 @@ export function NewsForm({
             onChange={(e) => setSourceText(e.target.value)}
             disabled={isPending}
             maxLength={15000}
+            className="font-mono text-sm leading-relaxed"
           />
         </Field>
+      </Card>
 
-        {/* 8. Reported facts (summary) */}
+      {/* Card 3: Summary with AI controls in ai-soft bar */}
+      <Card title="Summary" className="space-y-4">
+        <div className="rounded-md border border-ai-line bg-ai-soft p-3 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={handleGenerate}
+              disabled={isPending || !aiConfigured || !sourceText.trim()}
+            >
+              {pendingAction === "generating"
+                ? "Generating…"
+                : !aiConfigured
+                ? "AI is not configured"
+                : "Generate with AI"}
+            </Button>
+
+            {aiIsDemo && (
+              <Badge variant="warning">
+                Demo mode: placeholder output, not real AI
+              </Badge>
+            )}
+          </div>
+          {!sourceText.trim() && (
+            <span className="text-xs text-ink-subtle">
+              Paste article text above to enable AI summary
+            </span>
+          )}
+        </div>
+
+        {/* Reported facts (summary) */}
         <Field
           label="Reported facts (summary)"
           htmlFor="factSummary"
@@ -418,7 +456,7 @@ export function NewsForm({
           />
         </Field>
 
-        {/* 9. Why it matters (interpretation) */}
+        {/* Why it matters (interpretation) */}
         <Field
           label="Why it matters (interpretation)"
           htmlFor="whyItMatters"
@@ -434,17 +472,10 @@ export function NewsForm({
             maxLength={3000}
           />
         </Field>
-      </div>
-
-      {/* Demo mode badge if demo */}
-      {aiIsDemo && (
-        <div className="flex items-center gap-2">
-          <Badge variant="warning">Demo mode: placeholder output, not real AI</Badge>
-        </div>
-      )}
+      </Card>
 
       {/* Action buttons bar */}
-      <div className="flex items-center justify-between gap-3 pt-4 border-t border-slate-200 flex-wrap">
+      <div className="flex items-center justify-between gap-3 pt-4 border-t border-line flex-wrap">
         <div className="flex items-center gap-2 flex-wrap">
           {/* Save draft / Save changes */}
           <Button
@@ -458,20 +489,6 @@ export function NewsForm({
               : status === "PUBLISHED"
               ? "Save changes"
               : "Save draft"}
-          </Button>
-
-          {/* Generate with AI */}
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleGenerate}
-            disabled={isPending || !aiConfigured || !sourceText.trim()}
-          >
-            {pendingAction === "generating"
-              ? "Generating…"
-              : !aiConfigured
-              ? "AI is not configured"
-              : "Generate with AI"}
           </Button>
 
           {/* Publish (if draft) */}
@@ -504,6 +521,7 @@ export function NewsForm({
           <Button
             type="button"
             variant="danger"
+            size="sm"
             onClick={handleDelete}
             disabled={isPending}
           >

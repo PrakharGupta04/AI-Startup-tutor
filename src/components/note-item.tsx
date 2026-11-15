@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateNoteAction, deleteNoteAction } from "@/app/(app)/tutor/actions";
 import { Button, Textarea, Badge } from "@/components/ui";
+import { Avatar } from "@/components/avatar";
 import { ErrorMessage } from "@/components/error-message";
 import { formatDateTime } from "@/lib/format";
 
@@ -74,17 +75,19 @@ export function NoteItem({ note, canEdit, canDelete }: NoteItemProps) {
   };
 
   return (
-    <div className="p-3 bg-white rounded border border-slate-200 text-sm space-y-2">
+    <div className="p-3.5 rounded-md bg-canvas border border-line space-y-2 text-sm">
       {error && <ErrorMessage message={error} />}
 
-      <div className="flex items-center justify-between gap-2 flex-wrap text-xs text-slate-500">
+      <div className="flex items-center justify-between gap-2 flex-wrap text-xs text-ink-muted">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-semibold text-slate-800">{note.authorName}</span>
+          <Avatar name={note.authorName} size="sm" />
+          <span className="font-semibold text-ink">{note.authorName}</span>
           {note.authorRole === "INSTRUCTOR" && (
             <Badge variant="info">Instructor</Badge>
           )}
+          <span>·</span>
           <span>{formatDateTime(new Date(note.createdAt))}</span>
-          {isEdited && <span className="italic text-slate-400">(edited)</span>}
+          {isEdited && <span className="italic text-ink-subtle">(edited)</span>}
         </div>
 
         {!isEditing && (canEdit || canDelete) && (
@@ -98,7 +101,7 @@ export function NoteItem({ note, canEdit, canDelete }: NoteItemProps) {
                   setError(null);
                 }}
                 disabled={isPending}
-                className="text-xs text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50"
+                className="text-xs text-accent hover:underline font-medium disabled:opacity-50"
               >
                 Edit
               </button>
@@ -108,7 +111,7 @@ export function NoteItem({ note, canEdit, canDelete }: NoteItemProps) {
                 type="button"
                 onClick={handleDelete}
                 disabled={isPending}
-                className="text-xs text-red-600 hover:text-red-800 font-medium disabled:opacity-50"
+                className="text-xs text-danger hover:underline font-medium disabled:opacity-50"
               >
                 {isPending ? "Deleting…" : "Delete"}
               </button>
@@ -131,6 +134,7 @@ export function NoteItem({ note, canEdit, canDelete }: NoteItemProps) {
             <Button
               type="button"
               variant="secondary"
+              size="sm"
               onClick={() => {
                 setBody(note.body);
                 setIsEditing(false);
@@ -140,13 +144,13 @@ export function NoteItem({ note, canEdit, canDelete }: NoteItemProps) {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" size="sm" disabled={isPending}>
               {isPending ? "Saving…" : "Save note"}
             </Button>
           </div>
         </form>
       ) : (
-        <p className="text-slate-800 whitespace-pre-wrap">{note.body}</p>
+        <p className="text-ink whitespace-pre-wrap leading-relaxed">{note.body}</p>
       )}
     </div>
   );

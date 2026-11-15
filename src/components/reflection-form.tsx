@@ -239,7 +239,7 @@ export function ReflectionForm({
       {successMessage && (
         <div
           role="status"
-          className="rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800"
+          className="rounded-md border border-success/20 bg-success-soft p-4 text-sm text-success"
         >
           {successMessage}
         </div>
@@ -307,6 +307,43 @@ export function ReflectionForm({
 
         {/* Right Column: 5 Structured Fields */}
         <div className="space-y-4">
+          {/* AI controls bar above the structured fields */}
+          <div className="rounded-md border border-ai-line bg-ai-soft p-3 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleStructure}
+                disabled={isPending || !aiConfigured}
+              >
+                {!aiConfigured
+                  ? "AI is not configured."
+                  : pendingAction === "structuring"
+                  ? "Structuring…"
+                  : "Structure with AI"}
+              </Button>
+
+              {aiIsDemo && aiConfigured && (
+                <Badge variant="warning">
+                  Demo mode: placeholder output, not real AI
+                </Badge>
+              )}
+
+              {aiStructured && id && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleClearStructured}
+                  disabled={isPending}
+                >
+                  {pendingAction === "clearing" ? "Clearing…" : "Clear AI output"}
+                </Button>
+              )}
+            </div>
+          </div>
+
           <Field
             label="Concepts (required to submit)"
             htmlFor="concepts"
@@ -385,68 +422,32 @@ export function ReflectionForm({
       </div>
 
       {/* Action buttons bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-slate-200">
-        <div className="flex items-center gap-3 flex-wrap">
-          {/* Structure with AI */}
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-line">
+        {/* Save draft or Save changes */}
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={handleSave}
+          disabled={isPending}
+        >
+          {pendingAction === "saving"
+            ? "Saving…"
+            : status === "SUBMITTED"
+            ? "Save changes"
+            : "Save draft"}
+        </Button>
+
+        {/* Submit reflection (shown only when status is DRAFT) */}
+        {status === "DRAFT" && (
           <Button
             type="button"
-            variant="secondary"
-            onClick={handleStructure}
-            disabled={isPending || !aiConfigured}
-          >
-            {!aiConfigured
-              ? "AI is not configured."
-              : pendingAction === "structuring"
-              ? "Structuring…"
-              : "Structure with AI"}
-          </Button>
-
-          {aiIsDemo && aiConfigured && (
-            <Badge variant="warning">
-              Demo mode: placeholder output, not real AI
-            </Badge>
-          )}
-
-          {/* Clear AI output */}
-          {aiStructured && id && (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleClearStructured}
-              disabled={isPending}
-            >
-              {pendingAction === "clearing" ? "Clearing…" : "Clear AI output"}
-            </Button>
-          )}
-        </div>
-
-        <div className="flex items-center gap-3 self-end sm:self-center">
-          {/* Save draft or Save changes */}
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleSave}
+            variant="primary"
+            onClick={handleSubmit}
             disabled={isPending}
           >
-            {pendingAction === "saving"
-              ? "Saving…"
-              : status === "SUBMITTED"
-              ? "Save changes"
-              : "Save draft"}
+            {pendingAction === "submitting" ? "Submitting…" : "Submit"}
           </Button>
-
-          {/* Submit reflection (shown only when status is DRAFT) */}
-          {status === "DRAFT" && (
-            <Button
-              type="button"
-              variant="primary"
-              onClick={handleSubmit}
-              disabled={isPending}
-            >
-              {pendingAction === "submitting" ? "Submitting…" : "Submit"}
-            </Button>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );

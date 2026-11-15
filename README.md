@@ -128,7 +128,85 @@ The following npm scripts are defined in `package.json`:
 | `npm run db:migrate` | `tsx --env-file=.env.local scripts/migrate.ts` | Applies SQL migrations to the target SQLite database. |
 | `npm run db:studio` | `drizzle-kit studio` | Starts the Drizzle Studio visual database inspector. |
 | `npm run set-password` | `tsx --env-file=.env.local scripts/set-password.ts` | Resets a user password via command-line interface. |
+| `npm run set-password:prod` | `tsx --env-file=.env.production.local scripts/set-password.ts` | Resets a user password on the production database. |
 | `npm run ai-check` | `tsx --env-file=.env.local scripts/ai-check.ts` | Verifies AI provider configuration and runs connectivity diagnostics. |
+| `npm run db:migrate:prod` | `tsx --env-file=.env.production.local scripts/migrate.ts` | Applies SQL migrations to the production database. |
+| `npm run db:check` | `tsx --env-file=.env.local scripts/db-check.ts` | Checks schema, tables, and row counts on the local database. |
+| `npm run db:check:prod` | `tsx --env-file=.env.production.local scripts/db-check.ts` | Checks schema, tables, and row counts on the production database. |
+| `npm run db:backup` | `tsx --env-file=.env.local scripts/db-backup.ts` | Backs up all tables from the local database to a timestamped JSON file. |
+| `npm run db:backup:prod` | `tsx --env-file=.env.production.local scripts/db-backup.ts` | Backs up all tables from the production database to a timestamped JSON file. |
+
+## Deployment (Vercel Hobby + Turso Free)
+
+### Overview
+The application can be deployed using a split cloud architecture: **Vercel Hobby** for Next.js frontend and serverless compute, paired with **Turso Free** for hosted libSQL/SQLite database storage.
+
+### Production Environment Variables
+All production secrets and codes must be freshly generated, secure random strings. In production (`NODE_ENV=production`), `AUTH_SECRET` must be at least 32 characters, and both `GROUP_JOIN_CODE` and `INSTRUCTOR_CODE` must be at least 12 characters and distinct from each other.
+
+| Variable | Description |
+| :--- | :--- |
+| `DATABASE_URL` | Turso remote database URL (e.g. `libsql://your-db-org.turso.io`). |
+| `DATABASE_AUTH_TOKEN` | Turso authorization token generated via the Turso CLI or dashboard. |
+| `AUTH_SECRET` | Fresh random string of 32+ characters for signing session cookies. |
+| `GROUP_NAME` | Cohort or organization display name (e.g. `Acme Innovation Cohort`). |
+| `GROUP_JOIN_CODE` | Secure random code of at least 12 characters for cohort member onboarding. |
+| `INSTRUCTOR_CODE` | Secure random code of at least 12 characters for instructor account registration. |
+| `AI_PROVIDER` | Set to `gemini` for live Google Gemini models, or `demo` for offline placeholder summaries. |
+| `GEMINI_API_KEY` | Google AI Studio Gemini API key. |
+| `GEMINI_MODEL` | Gemini model identifier (e.g. `gemini-3.6-flash`). |
+
+### Deployment Steps
+1. **Create Turso Database**:
+   - Create a database in your Turso account in the desired cloud region.
+   - Note the database URL (`libsql://...`) and generate an auth token.
+2. **Configure Local Production Environment File**:
+   - Create `.env.production.local` locally (this file is git-ignored and must never be committed):
+     ```bash
+     DATABASE_URL=libsql://<your-database-name>-<org>.turso.io
+     DATABASE_AUTH_TOKEN=<your-turso-token>
+     AUTH_SECRET=<fresh-random-32-chars>
+     GROUP_NAME=Acme Innovation
+     GROUP_JOIN_CODE=<fresh-random-12-chars>
+     INSTRUCTOR_CODE=<fresh-random-12-chars>
+     AI_PROVIDER=gemini
+     GEMINI_API_KEY=<your-gemini-key>
+     GEMINI_MODEL=gemini-3.6-flash
+     ```
+3. **Run Production Migrations and Verification**:
+   - Run the production migration script from your local terminal:
+     ```bash
+     npm run db:migrate:prod
+     ```
+   - Verify that all tables were created and foreign key checks pass:
+     ```bash
+     npm run db:check:prod
+     ```
+4. **Deploy to Vercel**:
+   - Connect your Git repository to Vercel.
+   - Configure the environment variables listed in the table above in Vercel Project Settings > Environment Variables.
+   - Deploy the project.
+5. **Region Alignment**:
+   - For optimal database query latency, align your Vercel Serverless Function region with your Turso database location (e.g., both in US East or both in Europe West).
+6. **Initial Instructor Onboarding**:
+   - After deployment finishes, open your deployed app in a browser and navigate to `/register`.
+   - Register the first instructor account using the configured `INSTRUCTOR_CODE`.
+
+### Operations and Maintenance
+- **Database Backups**:
+  Run `npm run db:backup:prod` locally with `.env.production.local` to snapshot all five application tables to a timestamped JSON file under `backups/`.
+- **Emergency Password Recovery**:
+  If an instructor or member is locked out on production, reset their password from your local CLI:
+  ```bash
+  npm run set-password:prod -- <email> <newPassword>
+  ```
+
+### Limitations and Operational Considerations
+- **Vercel Hobby Tier**: Subject to Vercel's fair-use and non-commercial terms.
+- **Shared Free Gemini Quota**: Google AI Studio's free tier has rate limits, and prompts may take up to 30 seconds during periods of high demand.
+- **AI Privacy**: Free-tier content may be used by Google to improve its models; users should avoid entering confidential or proprietary company data.
+- **Authentication Safeguards**: Currently, no login-attempt rate-limiting is implemented, and active sessions are not immediately invalidated when a password is reset.
+- **Turso Free Terms**: Storage and read/write quotas on the Turso Free tier may evolve according to Turso service terms.
 
 ## Inspecting the Database
 To inspect the database graphically in your browser, run:

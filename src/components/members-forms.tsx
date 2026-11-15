@@ -4,6 +4,7 @@ import React, { useActionState, useState } from "react";
 import type { MemberRow } from "@/lib/data/users";
 import { formatDate } from "@/lib/format";
 import { Field, Input, Button, Badge, Select } from "@/components/ui";
+import { Avatar } from "@/components/avatar";
 import { ErrorMessage } from "@/components/error-message";
 import {
   addMemberAction,
@@ -20,7 +21,7 @@ export function AddMemberForm() {
       {state && state.ok && (
         <div
           role="status"
-          className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"
+          className="rounded-md border border-line bg-success-soft p-3 text-sm text-success"
         >
           {state.data.message}
         </div>
@@ -100,18 +101,18 @@ function ResetPasswordModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl space-y-4">
-        <h3 className="text-lg font-bold text-slate-900">
+      <div className="w-full max-w-md rounded-lg bg-surface p-6 shadow-xl space-y-4 border border-line">
+        <h3 className="text-lg font-bold text-ink">
           Reset Password for {member.name}
         </h3>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-ink-muted">
           Set a new temporary password for this user ({member.email}).
         </p>
 
         {state && state.ok && (
           <div
             role="status"
-            className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"
+            className="rounded-md border border-line bg-success-soft p-3 text-sm text-success"
           >
             {state.data.message}
           </div>
@@ -175,9 +176,9 @@ export function MembersTable({
     <div className="space-y-4">
       {actionError && <ErrorMessage message={actionError} />}
 
-      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-        <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-          <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+      <div className="overflow-x-auto rounded-lg border border-line bg-surface">
+        <table className="min-w-full divide-y divide-line text-left text-sm">
+          <thead className="bg-canvas text-[11px] font-semibold uppercase tracking-wider text-ink-subtle">
             <tr>
               <th scope="col" className="px-4 py-3 sm:px-6">
                 Name & Email
@@ -196,21 +197,24 @@ export function MembersTable({
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200 bg-white">
+          <tbody className="divide-y divide-line bg-surface">
             {members.map((member) => {
               const isSelf = member.id === currentUserId;
 
               return (
-                <tr key={member.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-4 sm:px-6 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-slate-900">
-                        {member.name}
-                      </span>
+                <tr key={member.id} className="min-h-[48px] hover:bg-canvas transition-colors">
+                  <td className="px-4 py-3 sm:px-6 whitespace-nowrap">
+                    <div className="flex items-center gap-3">
+                      <Avatar name={member.name} size="sm" />
+                      <div>
+                        <div className="font-medium text-ink">
+                          {member.name}
+                        </div>
+                        <div className="text-xs text-ink-muted">{member.email}</div>
+                      </div>
                     </div>
-                    <div className="text-xs text-slate-500">{member.email}</div>
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     {isSelf ? (
                       <Badge variant={member.role === "INSTRUCTOR" ? "info" : "neutral"}>
                         {member.role === "INSTRUCTOR" ? "Instructor" : "Member"}
@@ -238,19 +242,19 @@ export function MembersTable({
                       </form>
                     )}
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <Badge variant={member.isActive ? "success" : "danger"}>
                       {member.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-xs text-slate-500">
+                  <td className="px-4 py-3 whitespace-nowrap text-xs text-ink-muted">
                     {formatDate(member.createdAt)}
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-right text-xs sm:px-6">
+                  <td className="px-4 py-3 whitespace-nowrap text-right text-xs sm:px-6">
                     {isSelf ? (
-                      <span className="text-slate-500 font-medium italic">You</span>
+                      <span className="text-ink-subtle font-medium italic">You</span>
                     ) : (
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-2 flex-wrap">
                         {/* Toggle Active status */}
                         <form
                           action={async (formData) => {
@@ -271,21 +275,21 @@ export function MembersTable({
                             type="submit"
                             className={`font-medium hover:underline cursor-pointer ${
                               member.isActive
-                                ? "text-amber-600 hover:text-amber-700"
-                                : "text-emerald-600 hover:text-emerald-700"
+                                ? "text-warning"
+                                : "text-success"
                             }`}
                           >
                             {member.isActive ? "Deactivate" : "Activate"}
                           </button>
                         </form>
 
-                        <span className="text-slate-300">|</span>
+                        <span className="text-line">|</span>
 
                         {/* Reset password button */}
                         <button
                           type="button"
                           onClick={() => setResetTarget(member)}
-                          className="font-medium text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+                          className="font-medium text-primary hover:underline cursor-pointer"
                         >
                           Reset password
                         </button>

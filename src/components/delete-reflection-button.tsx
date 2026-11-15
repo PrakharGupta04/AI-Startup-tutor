@@ -43,6 +43,7 @@ export function DeleteReflectionButton({
       {error && <ErrorMessage message={error} className="mb-2" />}
       <Button
         variant="danger"
+        size="sm"
         onClick={handleDelete}
         disabled={isPending}
       >

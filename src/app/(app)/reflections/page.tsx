@@ -3,8 +3,10 @@ import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db/client";
 import { listReflections } from "@/lib/data/reflections";
 import { reflectionListSchema } from "@/lib/validation";
-import { Card, Badge } from "@/components/ui";
+import { Card, Badge, ButtonLink } from "@/components/ui";
+import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
+import { Avatar } from "@/components/avatar";
 import { formatDate } from "@/lib/format";
 
 export const instant = false;
@@ -38,48 +40,42 @@ export default async function ReflectionsPage(props: ReflectionsPageProps) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto w-full">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Class reflections
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Capture, structure, and review cohort learnings and takeaways.
-          </p>
-        </div>
-        <div>
-          <Link
-            href="/reflections/new"
-            className="inline-flex items-center justify-center min-h-[40px] px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          >
+    <div className="space-y-6 max-w-6xl mx-auto w-full">
+      {/* Page Header */}
+      <PageHeader
+        title="Class reflections"
+        description="Capture, structure, and review cohort learnings and takeaways."
+        actions={
+          <ButtonLink href="/reflections/new" variant="primary">
             New reflection
+          </ButtonLink>
+        }
+      />
+
+      {/* Scope segmented control */}
+      <div className="flex">
+        <div className="inline-flex rounded-md p-1 bg-surface border border-line gap-1">
+          <Link
+            href="/reflections?scope=all"
+            className={`px-3 py-1.5 rounded text-sm transition-colors ${
+              currentScope === "all"
+                ? "bg-brand text-white font-medium"
+                : "text-ink-muted hover:text-ink hover:bg-canvas"
+            }`}
+          >
+            All reflections
+          </Link>
+          <Link
+            href="/reflections?scope=mine"
+            className={`px-3 py-1.5 rounded text-sm transition-colors ${
+              currentScope === "mine"
+                ? "bg-brand text-white font-medium"
+                : "text-ink-muted hover:text-ink hover:bg-canvas"
+            }`}
+          >
+            My reflections
           </Link>
         </div>
-      </div>
-
-      {/* Scope navigation */}
-      <div className="flex border-b border-slate-200">
-        <Link
-          href={`/reflections?scope=all`}
-          className={`py-2.5 px-4 text-sm font-medium border-b-2 -mb-px transition-colors ${
-            currentScope === "all"
-              ? "border-blue-600 text-blue-600 font-semibold"
-              : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-          }`}
-        >
-          All
-        </Link>
-        <Link
-          href={`/reflections?scope=mine`}
-          className={`py-2.5 px-4 text-sm font-medium border-b-2 -mb-px transition-colors ${
-            currentScope === "mine"
-              ? "border-blue-600 text-blue-600 font-semibold"
-              : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-          }`}
-        >
-          Mine
-        </Link>
       </div>
 
       {/* Reflections list */}
@@ -88,7 +84,7 @@ export default async function ReflectionsPage(props: ReflectionsPageProps) {
           title="No reflections yet"
           description={
             currentScope === "mine"
-              ? "You haven't created any reflections yet."
+              ? "You have not created any reflections yet."
               : "No reflections have been shared yet."
           }
           action={{
@@ -97,93 +93,83 @@ export default async function ReflectionsPage(props: ReflectionsPageProps) {
           }}
         />
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {items.map((item) => (
-            <Card key={item.id} className="hover:border-slate-300 transition-colors">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="space-y-1.5 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="text-base font-semibold text-slate-900 break-words">
-                      {item.sessionTitle}
-                    </h2>
-                    {item.status === "DRAFT" ? (
-                      <Badge variant="warning">Draft</Badge>
-                    ) : (
-                      <Badge variant="success">Submitted</Badge>
-                    )}
-                    {item.aiStructured && (
-                      <Badge variant="info">AI-structured</Badge>
-                    )}
-                  </div>
-                  <div className="text-xs text-slate-500 flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span>
-                      Session date:{" "}
-                      <span className="font-medium text-slate-700">
-                        {item.sessionDate}
-                      </span>
-                    </span>
-                    <span>•</span>
-                    <span>
-                      Author:{" "}
-                      <span className="font-medium text-slate-700">
-                        {item.authorName}
-                      </span>
-                    </span>
-                    {item.submittedAt && (
-                      <>
-                        <span>•</span>
-                        <span>
-                          Submitted:{" "}
-                          <span className="font-medium text-slate-700">
-                            {formatDate(item.submittedAt)}
-                          </span>
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </div>
+            <Link
+              key={item.id}
+              href={`/reflections/${item.id}`}
+              className="block group"
+            >
+              <Card className="hover:border-brand/40 transition-colors">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="space-y-2 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-base font-semibold text-ink group-hover:text-brand transition-colors break-words">
+                        {item.sessionTitle}
+                      </h2>
+                      {item.status === "DRAFT" ? (
+                        <Badge variant="neutral">Draft</Badge>
+                      ) : (
+                        <Badge variant="success">Submitted</Badge>
+                      )}
+                      {item.aiStructured && (
+                        <Badge variant="ai">AI-structured</Badge>
+                      )}
+                    </div>
 
-                <div className="self-start sm:self-center shrink-0">
-                  <Link
-                    href={`/reflections/${item.id}`}
-                    className="inline-flex items-center justify-center min-h-[36px] px-3 py-1.5 rounded-md text-xs font-medium border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400"
-                  >
-                    View
-                  </Link>
+                    <div className="text-xs text-ink-muted flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <Avatar name={item.authorName} size="sm" />
+                        <span className="font-medium text-ink">
+                          {item.authorName}
+                        </span>
+                      </div>
+                      <span>•</span>
+                      <span>Session date: {item.sessionDate}</span>
+                    </div>
+                  </div>
+
+                  {item.submittedAt && (
+                    <div className="text-xs text-ink-muted sm:text-right shrink-0">
+                      Submitted {formatDate(item.submittedAt)}
+                    </div>
+                  )}
                 </div>
-              </div>
-            </Card>
+              </Card>
+            </Link>
           ))}
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between pt-4 border-t border-slate-200">
-              <p className="text-xs text-slate-500">
+            <div className="flex items-center justify-between pt-4 border-t border-line">
+              <p className="text-xs text-ink-muted">
                 Showing page {currentPage} of {totalPages} ({total} total)
               </p>
               <div className="flex items-center gap-2">
                 {currentPage > 1 ? (
-                  <Link
+                  <ButtonLink
                     href={`/reflections?scope=${currentScope}&page=${currentPage - 1}`}
-                    className="inline-flex items-center justify-center min-h-[36px] px-3 py-1.5 rounded-md text-xs font-medium border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+                    variant="secondary"
+                    size="sm"
                   >
                     Previous
-                  </Link>
+                  </ButtonLink>
                 ) : (
-                  <span className="inline-flex items-center justify-center min-h-[36px] px-3 py-1.5 rounded-md text-xs font-medium border border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed">
+                  <span className="inline-flex items-center justify-center min-h-[32px] px-3 py-1 rounded-md text-xs font-medium border border-line bg-canvas text-ink-subtle cursor-not-allowed">
                     Previous
                   </span>
                 )}
 
                 {currentPage < totalPages ? (
-                  <Link
+                  <ButtonLink
                     href={`/reflections?scope=${currentScope}&page=${currentPage + 1}`}
-                    className="inline-flex items-center justify-center min-h-[36px] px-3 py-1.5 rounded-md text-xs font-medium border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+                    variant="secondary"
+                    size="sm"
                   >
                     Next
-                  </Link>
+                  </ButtonLink>
                 ) : (
-                  <span className="inline-flex items-center justify-center min-h-[36px] px-3 py-1.5 rounded-md text-xs font-medium border border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed">
+                  <span className="inline-flex items-center justify-center min-h-[32px] px-3 py-1 rounded-md text-xs font-medium border border-line bg-canvas text-ink-subtle cursor-not-allowed">
                     Next
                   </span>
                 )}

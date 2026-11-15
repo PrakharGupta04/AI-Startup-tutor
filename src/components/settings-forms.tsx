@@ -10,7 +10,7 @@ import {
 
 interface ProfileFormProps {
   initialName: string;
-  email: string;
+  email?: string;
 }
 
 export function ProfileForm({ initialName, email }: ProfileFormProps) {
@@ -24,7 +24,7 @@ export function ProfileForm({ initialName, email }: ProfileFormProps) {
       {state && state.ok && (
         <div
           role="status"
-          className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"
+          className="rounded-md border border-line bg-success-soft p-3 text-sm text-success"
         >
           {state.data.message}
         </div>
@@ -50,20 +50,22 @@ export function ProfileForm({ initialName, email }: ProfileFormProps) {
         />
       </Field>
 
-      <Field
-        label="Email Address"
-        htmlFor="profile-email"
-        hint="Email address cannot be changed."
-      >
-        <Input
-          id="profile-email"
-          name="email"
-          type="email"
-          defaultValue={email}
-          disabled
-          className="bg-slate-50 text-slate-500 cursor-not-allowed"
-        />
-      </Field>
+      {email !== undefined && (
+        <Field
+          label="Email Address"
+          htmlFor="profile-email"
+          hint="Email address cannot be changed."
+        >
+          <Input
+            id="profile-email"
+            name="email"
+            type="email"
+            defaultValue={email}
+            disabled
+            className="bg-canvas text-ink-muted cursor-not-allowed"
+          />
+        </Field>
+      )}
 
       <div className="pt-2">
         <Button type="submit" disabled={isPending}>
@@ -85,7 +87,7 @@ export function ChangePasswordForm() {
       {state && state.ok && (
         <div
           role="status"
-          className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"
+          className="rounded-md border border-line bg-success-soft p-3 text-sm text-success"
         >
           {state.data.message}
         </div>

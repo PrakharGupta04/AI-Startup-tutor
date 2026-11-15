@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { getAiStatus } from "@/lib/ai";
 import { ReflectionForm } from "@/components/reflection-form";
+import { PageHeader } from "@/components/page-header";
 
 export const instant = false;
 
@@ -12,23 +13,21 @@ export default async function NewReflectionPage() {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto w-full">
+    <div className="space-y-6 max-w-3xl mx-auto w-full">
       <div>
         <Link
           href="/reflections"
-          className="text-sm font-medium text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 mb-2"
+          className="text-xs font-medium text-accent hover:underline inline-flex items-center gap-1 mb-2"
         >
           ← Back to reflections
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          New reflection
-        </h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Record your raw session notes, optionally structure them with AI, and review before submitting.
-        </p>
+        <PageHeader
+          title="New reflection"
+          description="Record your raw session notes, optionally structure them with AI, and review before submitting."
+        />
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-lg border border-line bg-surface p-6">
         <ReflectionForm
           initial={{
             sessionTitle: "",

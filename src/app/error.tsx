@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { Button } from "@/components/ui";
+import { AlertCircle } from "lucide-react";
+import { Button, ButtonLink } from "@/components/ui";
 
 export default function ErrorBoundary({
   error,
@@ -16,17 +17,25 @@ export default function ErrorBoundary({
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-sm text-center">
-        <h2 className="text-lg font-semibold text-slate-900 mb-2">
+    <div className="min-h-screen bg-canvas flex items-center justify-center p-4">
+      <div className="w-full max-w-md rounded-lg border border-line bg-surface p-6 text-center shadow-sm space-y-4">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-danger-soft text-danger">
+          <AlertCircle className="h-6 w-6" aria-hidden="true" />
+        </div>
+        <h2 className="text-lg font-bold text-ink">
           Something went wrong
         </h2>
-        <p className="text-sm text-slate-600 mb-6">
+        <p className="text-sm text-ink-muted">
           An unexpected error occurred. Please try again.
         </p>
-        <Button variant="primary" onClick={() => reset()}>
-          Try again
-        </Button>
+        <div className="flex items-center justify-center gap-3 pt-2">
+          <Button variant="primary" onClick={() => reset()}>
+            Try again
+          </Button>
+          <ButtonLink href="/dashboard" variant="secondary">
+            Return to dashboard
+          </ButtonLink>
+        </div>
       </div>
     </div>
   );

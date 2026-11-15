@@ -67,7 +67,7 @@ export function AskForm({ aiConfigured, aiIsDemo }: AskFormProps) {
       <div className="space-y-1.5">
         <label
           htmlFor="tutorPrompt"
-          className="block text-sm font-medium text-slate-800"
+          className="block text-sm font-medium text-ink"
         >
           Ask a question
         </label>
@@ -81,17 +81,17 @@ export function AskForm({ aiConfigured, aiIsDemo }: AskFormProps) {
           maxLength={2000}
           required
         />
-        <div className="flex items-center justify-between text-xs text-slate-500">
+        <div className="flex items-center justify-between text-xs text-ink-muted">
           <div>
             {fieldError && (
-              <span className="text-red-600 font-medium" role="alert">
+              <span className="text-danger font-medium" role="alert">
                 {fieldError}
               </span>
             )}
           </div>
           <span
             className={
-              charCount > 2000 ? "text-red-600 font-semibold" : undefined
+              charCount > 2000 ? "text-danger font-semibold" : undefined
             }
           >
             {charCount} / 2000
@@ -107,12 +107,12 @@ export function AskForm({ aiConfigured, aiIsDemo }: AskFormProps) {
             </Badge>
           )}
           {!aiConfigured && (
-            <span className="text-xs text-rose-600 font-medium">
+            <span className="text-xs text-danger font-medium">
               AI is not configured.
             </span>
           )}
           {isPending && (
-            <span className="text-xs text-slate-500 animate-pulse">
+            <span className="text-xs text-ink-muted">
               The tutor is thinking… this can take up to 30 seconds.
             </span>
           )}

@@ -43,13 +43,13 @@ export function NoteForm({ interactionId }: NoteFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 pt-3 border-t border-slate-200">
+    <form onSubmit={handleSubmit} className="space-y-3 pt-3 border-t border-line">
       {error && <ErrorMessage message={error} />}
 
       <div className="space-y-1">
         <label
           htmlFor="newNoteBody"
-          className="block text-xs font-semibold text-slate-700 uppercase tracking-wider"
+          className="block text-xs font-semibold text-ink uppercase tracking-wider"
         >
           Add a note for the group
         </label>
@@ -58,21 +58,21 @@ export function NoteForm({ interactionId }: NoteFormProps) {
           rows={3}
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          placeholder="Share your perspective, context, real-world examples, or related questions..."
+          placeholder="Share context, examples, reflections, or follow-ups for the cohort..."
           disabled={isPending}
           maxLength={2000}
           required
         />
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-end">
         <Button
           type="submit"
-          variant="secondary"
+          variant="primary"
+          size="sm"
           disabled={isPending}
-          className="text-xs"
         >
-          {isPending ? "Adding…" : "Add note"}
+          {isPending ? "Adding note…" : "Add note"}
         </Button>
       </div>
     </form>

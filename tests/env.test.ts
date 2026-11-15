@@ -118,4 +118,71 @@ describe("env parser", () => {
     expect(parsed.DATABASE_URL).toBe("file:./data/app.db");
     expect(parsed.DATABASE_AUTH_TOKEN).toBeUndefined();
   });
+
+  describe("production code length rules", () => {
+    const shortJoinCode = "member8c";
+    const shortInstCode = "instr8ch";
+    const valid12JoinCode = "member-code-12";
+    const valid12InstCode = "instructor-456";
+
+    it("throws in production when join or instructor code is 8 characters", () => {
+      let thrownJoin = "";
+      try {
+        parseEnv({
+          ...validBaseEnv,
+          NODE_ENV: "production",
+          GROUP_JOIN_CODE: shortJoinCode,
+          INSTRUCTOR_CODE: valid12InstCode,
+        });
+      } catch (err) {
+        thrownJoin = (err as Error).message;
+      }
+      expect(thrownJoin).toContain("GROUP_JOIN_CODE");
+      expect(thrownJoin).not.toContain(shortJoinCode);
+
+      let thrownInst = "";
+      try {
+        parseEnv({
+          ...validBaseEnv,
+          NODE_ENV: "production",
+          GROUP_JOIN_CODE: valid12JoinCode,
+          INSTRUCTOR_CODE: shortInstCode,
+        });
+      } catch (err) {
+        thrownInst = (err as Error).message;
+      }
+      expect(thrownInst).toContain("INSTRUCTOR_CODE");
+      expect(thrownInst).not.toContain(shortInstCode);
+    });
+
+    it("parses in production when both codes are 12+ characters", () => {
+      const parsed = parseEnv({
+        ...validBaseEnv,
+        NODE_ENV: "production",
+        GROUP_JOIN_CODE: valid12JoinCode,
+        INSTRUCTOR_CODE: valid12InstCode,
+      });
+      expect(parsed.GROUP_JOIN_CODE).toBe(valid12JoinCode);
+      expect(parsed.INSTRUCTOR_CODE).toBe(valid12InstCode);
+    });
+
+    it("parses 8-character codes when NODE_ENV is not production", () => {
+      const parsedDev = parseEnv({
+        ...validBaseEnv,
+        NODE_ENV: "development",
+        GROUP_JOIN_CODE: shortJoinCode,
+        INSTRUCTOR_CODE: shortInstCode,
+      });
+      expect(parsedDev.GROUP_JOIN_CODE).toBe(shortJoinCode);
+      expect(parsedDev.INSTRUCTOR_CODE).toBe(shortInstCode);
+
+      const parsedNone = parseEnv({
+        ...validBaseEnv,
+        GROUP_JOIN_CODE: shortJoinCode,
+        INSTRUCTOR_CODE: shortInstCode,
+      });
+      expect(parsedNone.GROUP_JOIN_CODE).toBe(shortJoinCode);
+      expect(parsedNone.INSTRUCTOR_CODE).toBe(shortInstCode);
+    });
+  });
 });

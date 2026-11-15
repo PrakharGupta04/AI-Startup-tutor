@@ -6,6 +6,7 @@ import { getReflection } from "@/lib/data/reflections";
 import { getAiStatus } from "@/lib/ai";
 import { AppError } from "@/lib/errors";
 import { ReflectionForm } from "@/components/reflection-form";
+import { PageHeader } from "@/components/page-header";
 
 export const instant = false;
 
@@ -41,23 +42,21 @@ export default async function EditReflectionPage(
   const aiStatus = getAiStatus();
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto w-full">
+    <div className="space-y-6 max-w-3xl mx-auto w-full">
       <div>
         <Link
           href={`/reflections/${reflection.id}`}
-          className="text-sm font-medium text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 mb-2"
+          className="text-xs font-medium text-accent hover:underline inline-flex items-center gap-1 mb-2"
         >
           ← Back to reflection
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          Edit reflection
-        </h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Update notes or structured insights.
-        </p>
+        <PageHeader
+          title="Edit reflection"
+          description="Update notes or structured insights."
+        />
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-lg border border-line bg-surface p-6">
         <ReflectionForm
           initial={{
             id: reflection.id,

@@ -6,6 +6,8 @@ import { newsListSchema } from "@/lib/validation";
 import { NEWS_CATEGORIES, NEWS_CATEGORY_LABELS } from "@/lib/constants";
 import { NewsCard } from "@/components/news-card";
 import { EmptyState } from "@/components/empty-state";
+import { PageHeader } from "@/components/page-header";
+import { ButtonLink } from "@/components/ui";
 
 export const instant = false;
 
@@ -52,33 +54,26 @@ export default async function NewsPage(props: NewsPageProps) {
   return (
     <div className="space-y-6 max-w-4xl mx-auto w-full">
       {/* Header with optional Manage News button */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Collaboration news
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Curated corporate–startup collaboration news, reported facts, and interpretation.
-          </p>
-        </div>
-        {user.role === "INSTRUCTOR" && (
-          <Link
-            href="/news/manage"
-            className="inline-flex items-center justify-center min-h-[40px] px-4 py-2 rounded-md text-sm font-medium bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition-colors shadow-sm"
-          >
-            Manage news
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        title="Collaboration news"
+        description="Curated corporate–startup collaboration news, reported facts, and interpretation."
+        actions={
+          user.role === "INSTRUCTOR" ? (
+            <ButtonLink href="/news/manage" variant="secondary" size="sm">
+              Manage news
+            </ButtonLink>
+          ) : undefined
+        }
+      />
 
-      {/* Category filter tabs */}
-      <div className="flex items-center gap-2 flex-wrap border-b border-slate-200 pb-3">
+      {/* Category filter as horizontally scrollable chip row */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2">
         <Link
           href={makeUrl(1, "")}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+          className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
             !parsed.category
-              ? "bg-blue-600 text-white"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              ? "bg-brand text-white"
+              : "bg-surface border border-line text-ink-muted hover:text-ink hover:bg-canvas"
           }`}
         >
           All
@@ -89,10 +84,10 @@ export default async function NewsPage(props: NewsPageProps) {
             <Link
               key={catKey}
               href={makeUrl(1, catKey)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
                 isSelected
-                  ? "bg-blue-600 text-white"
-                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  ? "bg-brand text-white"
+                  : "bg-surface border border-line text-ink-muted hover:text-ink hover:bg-canvas"
               }`}
             >
               {NEWS_CATEGORY_LABELS[catKey]}
@@ -118,37 +113,41 @@ export default async function NewsPage(props: NewsPageProps) {
           ))}
 
           {/* Pagination */}
-          <div className="flex items-center justify-between pt-4 text-sm text-slate-500">
-            <div>
-              Page {currentPage} of {totalPages} ({total} total)
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-4 border-t border-line text-xs text-ink-muted">
+              <div>
+                Page {currentPage} of {totalPages} ({total} total)
+              </div>
+              <div className="flex items-center gap-2">
+                {currentPage > 1 ? (
+                  <ButtonLink
+                    href={makeUrl(currentPage - 1)}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    Previous
+                  </ButtonLink>
+                ) : (
+                  <span className="inline-flex items-center justify-center min-h-[32px] px-3 py-1 rounded-md text-xs font-medium border border-line bg-canvas text-ink-subtle cursor-not-allowed">
+                    Previous
+                  </span>
+                )}
+                {currentPage < totalPages ? (
+                  <ButtonLink
+                    href={makeUrl(currentPage + 1)}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    Next
+                  </ButtonLink>
+                ) : (
+                  <span className="inline-flex items-center justify-center min-h-[32px] px-3 py-1 rounded-md text-xs font-medium border border-line bg-canvas text-ink-subtle cursor-not-allowed">
+                    Next
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              {currentPage > 1 ? (
-                <Link
-                  href={makeUrl(currentPage - 1)}
-                  className="inline-flex items-center justify-center min-h-[36px] px-3 py-1.5 rounded-md text-sm font-medium bg-white text-slate-700 border border-slate-300 hover:bg-slate-50"
-                >
-                  Previous
-                </Link>
-              ) : (
-                <span className="inline-flex items-center justify-center min-h-[36px] px-3 py-1.5 rounded-md text-sm font-medium bg-slate-100 text-slate-400 cursor-not-allowed">
-                  Previous
-                </span>
-              )}
-              {currentPage < totalPages ? (
-                <Link
-                  href={makeUrl(currentPage + 1)}
-                  className="inline-flex items-center justify-center min-h-[36px] px-3 py-1.5 rounded-md text-sm font-medium bg-white text-slate-700 border border-slate-300 hover:bg-slate-50"
-                >
-                  Next
-                </Link>
-              ) : (
-                <span className="inline-flex items-center justify-center min-h-[36px] px-3 py-1.5 rounded-md text-sm font-medium bg-slate-100 text-slate-400 cursor-not-allowed">
-                  Next
-                </span>
-              )}
-            </div>
-          </div>
+          )}
         </div>
       )}
     </div>

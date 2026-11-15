@@ -6,7 +6,7 @@ import { getNewsForEdit } from "@/lib/data/news";
 import { getAiStatus } from "@/lib/ai";
 import { AppError } from "@/lib/errors";
 import { NewsForm } from "@/components/news-form";
-import { Card } from "@/components/ui";
+import { PageHeader } from "@/components/page-header";
 
 export const instant = false;
 
@@ -36,42 +36,38 @@ export default async function EditNewsPage(props: EditNewsPageProps) {
   const aiStatus = getAiStatus();
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto w-full">
+    <div className="space-y-6 max-w-3xl mx-auto w-full">
       <div>
         <Link
           href="/news/manage"
-          className="text-sm font-medium text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 mb-2"
+          className="text-xs font-medium text-accent hover:underline inline-flex items-center gap-1 mb-2"
         >
           ← Back to manage news
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          Edit news item
-        </h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Update content, review AI-assisted interpretations, or manage publication status.
-        </p>
+        <PageHeader
+          title="Edit news item"
+          description="Update article content, re-generate summaries, or manage publication status."
+        />
       </div>
 
-      <Card className="p-6">
-        <NewsForm
-          initial={{
-            id: item.id,
-            category: item.category,
-            headline: item.headline,
-            companies: item.companies,
-            publishedOn: item.publishedOn ?? "",
-            sourceName: item.sourceName,
-            sourceUrl: item.sourceUrl,
-            sourceText: item.sourceText,
-            factSummary: item.factSummary,
-            whyItMatters: item.whyItMatters,
-            status: item.status,
-            aiAssisted: item.aiAssisted,
-          }}
-          aiConfigured={aiStatus.configured}
-          aiIsDemo={aiStatus.provider === "demo"}
-        />
-      </Card>
+      <NewsForm
+        initial={{
+          id: item.id,
+          category: item.category,
+          headline: item.headline,
+          companies: item.companies || "",
+          publishedOn: item.publishedOn || "",
+          sourceName: item.sourceName,
+          sourceUrl: item.sourceUrl,
+          sourceText: item.sourceText,
+          factSummary: item.factSummary,
+          whyItMatters: item.whyItMatters,
+          status: item.status,
+          aiAssisted: item.aiAssisted,
+        }}
+        aiConfigured={aiStatus.configured}
+        aiIsDemo={aiStatus.provider === "demo"}
+      />
     </div>
   );
 }
