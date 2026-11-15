@@ -1,3 +1,5 @@
+import { isAiError } from "./ai/errors";
+
 export type AppErrorCode =
   | "UNAUTHENTICATED"
   | "FORBIDDEN"
@@ -39,6 +41,9 @@ export function failure<T = null>(
 export function toFailure<T = null>(e: unknown): ActionResult<T> {
   if (e instanceof AppError) {
     return failure<T>(e.message, e.fieldErrors);
+  }
+  if (isAiError(e)) {
+    return failure<T>(e.message);
   }
   console.error("Unhandled error:", e);
   return failure<T>("Something went wrong. Please try again.");

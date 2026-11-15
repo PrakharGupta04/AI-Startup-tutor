@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ROLES } from "./constants";
 import { AppError } from "./errors";
+import { AI_INPUT_LIMITS } from "./ai/types";
 
 const emailSchema = z
   .string({ message: "Email is required" })
@@ -92,6 +93,104 @@ export const setActiveSchema = z.object({
 export const setRoleSchema = z.object({
   userId: userIdSchema,
   role: roleSchema,
+});
+
+const calendarDateSchema = z
+  .string({ message: "Enter a valid date." })
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid date.")
+  .refine((val) => {
+    const parts = val.split("-").map(Number);
+    if (parts.length !== 3) return false;
+    const [year, month, day] = parts;
+    const d = new Date(Date.UTC(year, month - 1, day));
+    return (
+      d.getUTCFullYear() === year &&
+      d.getUTCMonth() === month - 1 &&
+      d.getUTCDate() === day
+    );
+  }, "Enter a valid date.");
+
+export const reflectionSaveSchema = z.object({
+  id: z
+    .union([
+      z.number().int().positive("Invalid reflection ID."),
+      z
+        .string()
+        .regex(/^\d+$/, "Invalid reflection ID.")
+        .transform(Number)
+        .pipe(z.number().int().positive("Invalid reflection ID.")),
+    ])
+    .optional(),
+  sessionTitle: z
+    .string({ message: "Session title is required." })
+    .trim()
+    .min(1, "Session title is required.")
+    .max(
+      AI_INPUT_LIMITS.sessionTitle,
+      `Session title must be at most ${AI_INPUT_LIMITS.sessionTitle} characters.`
+    ),
+  sessionDate: calendarDateSchema,
+  rawNotes: z
+    .string()
+    .max(
+      AI_INPUT_LIMITS.rawNotes,
+      `Raw notes must be at most ${AI_INPUT_LIMITS.rawNotes} characters.`
+    )
+    .default(""),
+  concepts: z
+    .string()
+    .max(5000, "Concepts must be at most 5000 characters.")
+    .default(""),
+  takeaways: z
+    .string()
+    .max(5000, "Takeaways must be at most 5000 characters.")
+    .default(""),
+  observations: z
+    .string()
+    .max(5000, "Observations must be at most 5000 characters.")
+    .default(""),
+  insights: z
+    .string()
+    .max(5000, "Insights must be at most 5000 characters.")
+    .default(""),
+  openQuestions: z
+    .string()
+    .max(5000, "Open questions must be at most 5000 characters.")
+    .default(""),
+});
+
+export const reflectionIdSchema = z.object({
+  id: z.union([
+    z.number().int().positive("Invalid reflection ID."),
+    z
+      .string()
+      .regex(/^\d+$/, "Invalid reflection ID.")
+      .transform(Number)
+      .pipe(z.number().int().positive("Invalid reflection ID.")),
+  ]),
+});
+
+export const reflectionListSchema = z.object({
+  page: z
+    .preprocess((val) => {
+      if (typeof val === "number" && !isNaN(val) && val >= 1) {
+        return Math.floor(val);
+      }
+      if (typeof val === "string") {
+        const parsed = parseInt(val, 10);
+        if (!isNaN(parsed) && parsed >= 1) {
+          return parsed;
+        }
+      }
+      return 1;
+    }, z.number().int().min(1).default(1))
+    .default(1),
+  scope: z
+    .preprocess((val) => {
+      if (val === "mine") return "mine";
+      return "all";
+    }, z.enum(["all", "mine"]).default("all"))
+    .default("all"),
 });
 
 export function parseInput<T>(schema: z.ZodType<T>, input: unknown): T {

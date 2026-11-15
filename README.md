@@ -54,6 +54,12 @@ Corporate Startup Tutor is a single-group web application designed to support co
      ```
    - This directly updates the user's password hash in the database.
 
+## Reflections
+Class reflections allow cohort members to capture and structure their session learnings:
+- **Workflow**: Write notes → save draft → optionally structure with AI → review and edit → submit.
+- **Privacy and Visibility**: Drafts are completely private to their author (not visible to peers or instructors). Submitted reflections are visible to all authenticated group members.
+- **Integrity**: Raw notes are persisted before any AI processing runs, and AI structuring never overwrites or modifies your original notes.
+
 ## Environment Variables
 The following environment variables are supported in `.env.example` and validated via Zod:
 
@@ -121,4 +127,4 @@ The following items are intentionally deferred for subsequent phases and future 
 - Multi-group and multi-tenant partitioning
 
 ## Project Status
-Phase 3 of 7 complete: AI provider layer
+Phase 4 of 7 complete: reflections
