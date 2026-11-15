@@ -193,6 +193,88 @@ export const reflectionListSchema = z.object({
     .default("all"),
 });
 
+export const askSchema = z.object({
+  prompt: z
+    .string({ message: "Enter a question." })
+    .trim()
+    .min(1, "Enter a question.")
+    .max(
+      AI_INPUT_LIMITS.tutorPrompt,
+      `The question is too long (max ${AI_INPUT_LIMITS.tutorPrompt} characters).`
+    ),
+});
+
+export const interactionIdSchema = z.object({
+  id: z.union([
+    z.number().int().positive("Invalid interaction ID."),
+    z
+      .string()
+      .regex(/^\d+$/, "Invalid interaction ID.")
+      .transform(Number)
+      .pipe(z.number().int().positive("Invalid interaction ID.")),
+  ]),
+});
+
+export const interactionListSchema = z.object({
+  page: z
+    .preprocess((val) => {
+      if (typeof val === "number" && !isNaN(val) && val >= 1) {
+        return Math.floor(val);
+      }
+      if (typeof val === "string") {
+        const parsed = parseInt(val, 10);
+        if (!isNaN(parsed) && parsed >= 1) {
+          return parsed;
+        }
+      }
+      return 1;
+    }, z.number().int().min(1).default(1))
+    .default(1),
+});
+
+export const noteAddSchema = z.object({
+  interactionId: z.union([
+    z.number().int().positive("Invalid interaction ID."),
+    z
+      .string()
+      .regex(/^\d+$/, "Invalid interaction ID.")
+      .transform(Number)
+      .pipe(z.number().int().positive("Invalid interaction ID.")),
+  ]),
+  body: z
+    .string({ message: "Write a note." })
+    .trim()
+    .min(1, "Write a note.")
+    .max(2000, "Note must be at most 2000 characters."),
+});
+
+export const noteUpdateSchema = z.object({
+  noteId: z.union([
+    z.number().int().positive("Invalid note ID."),
+    z
+      .string()
+      .regex(/^\d+$/, "Invalid note ID.")
+      .transform(Number)
+      .pipe(z.number().int().positive("Invalid note ID.")),
+  ]),
+  body: z
+    .string({ message: "Write a note." })
+    .trim()
+    .min(1, "Write a note.")
+    .max(2000, "Note must be at most 2000 characters."),
+});
+
+export const noteIdSchema = z.object({
+  noteId: z.union([
+    z.number().int().positive("Invalid note ID."),
+    z
+      .string()
+      .regex(/^\d+$/, "Invalid note ID.")
+      .transform(Number)
+      .pipe(z.number().int().positive("Invalid note ID.")),
+  ]),
+});
+
 export function parseInput<T>(schema: z.ZodType<T>, input: unknown): T {
   const result = schema.safeParse(input);
   if (!result.success) {

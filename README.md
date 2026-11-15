@@ -60,6 +60,14 @@ Class reflections allow cohort members to capture and structure their session le
 - **Privacy and Visibility**: Drafts are completely private to their author (not visible to peers or instructors). Submitted reflections are visible to all authenticated group members.
 - **Integrity**: Raw notes are persisted before any AI processing runs, and AI structuring never overwrites or modifies your original notes.
 
+## AI Tutor and Shared Log
+The AI Tutor provides interactive innovation coaching with a shared log accessible to the entire cohort:
+- **Shared by Default**: All questions, AI answers, and follow-up notes are visible to every authenticated group member, creating a cumulative knowledge base.
+- **Reliable Persistence**: Every question is written to the database before the AI request begins. If an AI call times out, exceeds quota, or fails, the question is never lost and displays a clear error state.
+- **Author Retry**: If an interaction fails, the author can trigger a retry with a single click.
+- **Community Group Notes**: Cohort members can append follow-up notes, context, or corrections to any interaction. Group notes are visually separated from the AI response and clearly attributed.
+- **Permissions and Moderation**: Question prompts and AI responses cannot be altered. Instructors can permanently delete any interaction (which automatically cascades to all associated notes). Notes can be edited only by their author, and can be deleted by either the author or an instructor.
+
 ## Environment Variables
 The following environment variables are supported in `.env.example` and validated via Zod:
 
@@ -127,4 +135,4 @@ The following items are intentionally deferred for subsequent phases and future 
 - Multi-group and multi-tenant partitioning
 
 ## Project Status
-Phase 4 of 7 complete: reflections
+Phase 5 of 7 complete: tutor and shared log
