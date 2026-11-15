@@ -69,6 +69,15 @@ The following environment variables are supported in `.env.example` and validate
 | `GEMINI_API_KEY` | Optional Google Gemini API key used for structuring reflections and AI tutor answers. |
 | `GEMINI_MODEL` | Gemini model name identifier (defaults to `"gemini-3.6-flash"`). |
 
+## AI provider (Gemini free tier)
+- **Free Tier Setup**: Google's free tier needs no payment method. Create an API key in Google AI Studio and set `GEMINI_API_KEY` in `.env.local`.
+- **Verification**: Run `npm run ai-check` to verify the configuration and test connectivity.
+- **Rate and Quota Limits**: Limits are shown in Google AI Studio and change over time, so users should check them there.
+- **Privacy and Data Usage**: Free-tier content may be used by Google to improve its products. Users must not enter personal or confidential information.
+- **Demo Mode**: Setting `AI_PROVIDER=demo` produces clearly labelled placeholder output that is not real AI.
+- **Graceful Degradation**: Without an API key, AI features show a clear message while all non-AI features continue working.
+- **Troubleshooting**: If `ai-check` reports a configuration error, check the API key and the exact `GEMINI_MODEL` ID shown in AI Studio.
+
 ## Scripts
 The following npm scripts are defined in `package.json`:
 
@@ -84,6 +93,7 @@ The following npm scripts are defined in `package.json`:
 | `npm run db:migrate` | `tsx --env-file=.env.local scripts/migrate.ts` | Applies SQL migrations to the target SQLite database. |
 | `npm run db:studio` | `drizzle-kit studio` | Starts the Drizzle Studio visual database inspector. |
 | `npm run set-password` | `tsx --env-file=.env.local scripts/set-password.ts` | Resets a user password via command-line interface. |
+| `npm run ai-check` | `tsx --env-file=.env.local scripts/ai-check.ts` | Verifies AI provider configuration and runs connectivity diagnostics. |
 
 ## Inspecting the Database
 To inspect the database graphically in your browser, run:
@@ -111,4 +121,4 @@ The following items are intentionally deferred for subsequent phases and future 
 - Multi-group and multi-tenant partitioning
 
 ## Project Status
-Phase 2 of 7 complete: authentication and members
+Phase 3 of 7 complete: AI provider layer
