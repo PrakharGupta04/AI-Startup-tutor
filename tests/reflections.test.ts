@@ -676,4 +676,52 @@ describe("reflections data layer and validation", () => {
 
     spy.mockRestore();
   });
+
+  it("14. saveReflection rejects sessionDate of 2026-11-17 with VALIDATION and creates no row; 2026-11-15 works", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-15T10:00:00Z"));
+
+    try {
+      const beforeList = await listReflections(db, member1, { page: 1, scope: "mine" });
+      const initialCount = beforeList.total;
+
+      await expect(
+        saveReflection(db, member1, {
+          sessionTitle: "Future session",
+          sessionDate: "2026-11-17",
+          rawNotes: "Notes",
+          concepts: "",
+          takeaways: "",
+          observations: "",
+          insights: "",
+          openQuestions: "",
+        })
+      ).rejects.toMatchObject({
+        code: "VALIDATION",
+        fieldErrors: {
+          sessionDate: "The session date cannot be in the future.",
+        },
+      });
+
+      const afterFailedList = await listReflections(db, member1, { page: 1, scope: "mine" });
+      expect(afterFailedList.total).toBe(initialCount);
+
+      const saved = await saveReflection(db, member1, {
+        sessionTitle: "Current session",
+        sessionDate: "2026-11-15",
+        rawNotes: "Notes",
+        concepts: "",
+        takeaways: "",
+        observations: "",
+        insights: "",
+        openQuestions: "",
+      });
+      expect(saved.id).toBeDefined();
+
+      const afterSuccessList = await listReflections(db, member1, { page: 1, scope: "mine" });
+      expect(afterSuccessList.total).toBe(initialCount + 1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

@@ -4,7 +4,11 @@ import { reflections, users } from "../db/schema";
 import { AppError } from "../errors";
 import type { AuthUser } from "../permissions";
 import type { AiProvider, StructuredReflection } from "../ai/types";
-import type { reflectionSaveSchema, reflectionListSchema } from "../validation";
+import {
+  maxSessionDate,
+  type reflectionSaveSchema,
+  type reflectionListSchema,
+} from "../validation";
 import type { z } from "zod";
 
 export type ReflectionView = {
@@ -31,6 +35,12 @@ export async function saveReflection(
   actor: AuthUser,
   input: z.infer<typeof reflectionSaveSchema>
 ): Promise<{ id: number }> {
+  if (input.sessionDate > maxSessionDate()) {
+    throw new AppError("VALIDATION", "Please correct the highlighted fields.", {
+      sessionDate: "The session date cannot be in the future.",
+    });
+  }
+
   if (input.id === undefined) {
     const [inserted] = await db
       .insert(reflections)

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import {
   saveDraftAction,
@@ -10,7 +10,14 @@ import {
 } from "@/app/(app)/reflections/actions";
 import { Button, Field, Input, Textarea, Badge } from "@/components/ui";
 import { ErrorMessage } from "@/components/error-message";
-import { AiNotice } from "@/components/ai-notice";
+
+function localToday(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
 
 export interface ReflectionFormProps {
   initial: {
@@ -37,6 +44,11 @@ export function ReflectionForm({
 }: ReflectionFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const localMax = useSyncExternalStore(
+    () => () => {},
+    () => localToday(),
+    () => undefined
+  );
   const [pendingAction, setPendingAction] = useState<
     "saving" | "structuring" | "submitting" | "clearing" | null
   >(null);
@@ -261,6 +273,7 @@ export function ReflectionForm({
             <Input
               id="sessionDate"
               type="date"
+              max={localMax}
               value={sessionDate}
               onChange={(e) => setSessionDate(e.target.value)}
               disabled={isPending}
@@ -370,9 +383,6 @@ export function ReflectionForm({
           </Field>
         </div>
       </div>
-
-      {/* AI notice above the action buttons */}
-      <AiNotice />
 
       {/* Action buttons bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-slate-200">

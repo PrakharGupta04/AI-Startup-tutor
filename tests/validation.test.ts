@@ -1,9 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   parseInput,
   registerSchema,
   setActiveSchema,
   setRoleSchema,
+  maxSessionDate,
+  reflectionSaveSchema,
 } from "@/lib/validation";
 import { AppError } from "@/lib/errors";
 
@@ -94,5 +96,73 @@ describe("validation and parseInput", () => {
       expect(appErr.fieldErrors?.password).toBeDefined();
       expect(appErr.fieldErrors?.code).toBeDefined();
     }
+  });
+
+  describe("future-date validation and maxSessionDate", () => {
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(new Date("2026-11-15T10:00:00Z"));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("maxSessionDate returns UTC date plus 1 day (2026-11-16)", () => {
+      expect(maxSessionDate()).toBe("2026-11-16");
+    });
+
+    it("reflectionSaveSchema accepts today (2026-11-15), tomorrow (2026-11-16), and a past date", () => {
+      const baseInput = {
+        sessionTitle: "Cohort Session",
+        rawNotes: "Notes",
+        concepts: "Concepts",
+        takeaways: "Takeaways",
+        observations: "Obs",
+        insights: "Insights",
+        openQuestions: "Questions",
+      };
+
+      const todayParsed = parseInput(reflectionSaveSchema, {
+        ...baseInput,
+        sessionDate: "2026-11-15",
+      });
+      expect(todayParsed.sessionDate).toBe("2026-11-15");
+
+      const tomorrowParsed = parseInput(reflectionSaveSchema, {
+        ...baseInput,
+        sessionDate: "2026-11-16",
+      });
+      expect(tomorrowParsed.sessionDate).toBe("2026-11-16");
+
+      const pastParsed = parseInput(reflectionSaveSchema, {
+        ...baseInput,
+        sessionDate: "2026-01-15",
+      });
+      expect(pastParsed.sessionDate).toBe("2026-01-15");
+    });
+
+    it("reflectionSaveSchema rejects day after tomorrow (2026-11-17) with specific message", () => {
+      try {
+        parseInput(reflectionSaveSchema, {
+          sessionTitle: "Future Session",
+          sessionDate: "2026-11-17",
+          rawNotes: "",
+          concepts: "",
+          takeaways: "",
+          observations: "",
+          insights: "",
+          openQuestions: "",
+        });
+        expect.unreachable("Should have rejected 2026-11-17");
+      } catch (error) {
+        expect(error).toBeInstanceOf(AppError);
+        const appErr = error as AppError;
+        expect(appErr.code).toBe("VALIDATION");
+        expect(appErr.fieldErrors?.sessionDate).toBe(
+          "The session date cannot be in the future."
+        );
+      }
+    });
   });
 });

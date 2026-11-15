@@ -108,6 +108,16 @@ export function isValidCalendarDate(val: string): boolean {
   );
 }
 
+export function maxSessionDate(now: Date = new Date()): string {
+  const tomorrow = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1)
+  );
+  const y = tomorrow.getUTCFullYear();
+  const m = String(tomorrow.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(tomorrow.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 const calendarDateSchema = z
   .string({ message: "Enter a valid date." })
   .refine(isValidCalendarDate, "Enter a valid date.");
@@ -131,7 +141,10 @@ export const reflectionSaveSchema = z.object({
       AI_INPUT_LIMITS.sessionTitle,
       `Session title must be at most ${AI_INPUT_LIMITS.sessionTitle} characters.`
     ),
-  sessionDate: calendarDateSchema,
+  sessionDate: calendarDateSchema.refine(
+    (val) => val <= maxSessionDate(),
+    "The session date cannot be in the future."
+  ),
   rawNotes: z
     .string()
     .max(

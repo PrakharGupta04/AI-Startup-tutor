@@ -133,13 +133,16 @@ describe("tutor data layer and validation", () => {
     expect(seenByMember2.id).toBe(result.id);
     expect(seenByMember2.response).toBe(detail.response);
 
-    // Instructor can see it
+    // Instructor can see it via getInteraction and listInteractions
     const seenByInstructor = await getInteraction(db, instructor, result.id);
     expect(seenByInstructor.id).toBe(result.id);
 
-    // Visible in listInteractions
+    // Visible in listInteractions for both member and instructor
     const list = await listInteractions(db, member2, { page: 1 });
     expect(list.items.some((i) => i.id === result.id)).toBe(true);
+
+    const instructorList = await listInteractions(db, instructor, { page: 1 });
+    expect(instructorList.items.some((i) => i.id === result.id)).toBe(true);
   });
 
   it("2. Failing provider throwing AiError('RATE_LIMITED'): the row EXISTS with the exact prompt, status FAILED, response null, errorMessage equals the AiError message; the function returns status FAILED and does not throw", async () => {

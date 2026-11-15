@@ -23,7 +23,6 @@ import {
   Badge,
 } from "@/components/ui";
 import { ErrorMessage } from "@/components/error-message";
-import { AiNotice } from "@/components/ai-notice";
 
 export interface NewsFormProps {
   initial: {
@@ -436,9 +435,6 @@ export function NewsForm({
           />
         </Field>
       </div>
-
-      {/* AI Notice */}
-      <AiNotice />
 
       {/* Demo mode badge if demo */}
       {aiIsDemo && (

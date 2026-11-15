@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { askAction } from "@/app/(app)/tutor/actions";
 import { Button, Textarea, Badge } from "@/components/ui";
 import { ErrorMessage } from "@/components/error-message";
-import { AiNotice } from "@/components/ai-notice";
 
 export interface AskFormProps {
   aiConfigured: boolean;
@@ -99,8 +98,6 @@ export function AskForm({ aiConfigured, aiIsDemo }: AskFormProps) {
           </span>
         </div>
       </div>
-
-      <AiNotice />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
         <div className="flex items-center gap-2 flex-wrap">
