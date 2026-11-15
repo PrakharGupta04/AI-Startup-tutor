@@ -1,7 +1,12 @@
 # Corporate Startup Tutor
 
 ## Overview
-Corporate Startup Tutor is a single-group web application designed to support corporate innovation cohorts through structured reflection, curated collaboration news, and an AI-assisted tutor interaction log. The application provides a focused learning and interaction hub for cohort members and instructors without external bloat or unnecessary dependencies.
+Corporate Startup Tutor is a single-group web application designed to support corporate innovation cohorts. The platform is organized around three foundational learning pillars:
+1. **Class Reflections**: Private note-taking, AI-assisted structuring, and shared cohort reflections.
+2. **Collaboration News**: Instructor-curated news on corporate–startup partnerships with separate fact reporting and strategic interpretation.
+3. **AI Tutor and Shared Log**: Interactive AI tutor coaching with a transparent shared question log and community follow-up notes.
+
+The system enforces role-based access for cohort **Members** and **Instructors**, and ships strictly with **no sample data**—all data is created dynamically through verified application workflows.
 
 ## Prerequisites
 - Node.js 22.x or later
@@ -53,6 +58,14 @@ Corporate Startup Tutor is a single-group web application designed to support co
      npm run set-password -- <email> <newPassword>
      ```
    - This directly updates the user's password hash in the database.
+
+## Demo Walkthrough
+Follow this step-by-step walkthrough to test the core features across roles:
+1. Register the instructor with `INSTRUCTOR_CODE`.
+2. Register a member with `GROUP_JOIN_CODE` in a second browser.
+3. Member writes reflection notes, structures them with AI, edits and submits; the instructor reads it.
+4. Member asks the tutor a question; the instructor adds a note.
+5. Instructor adds a news item with a real source link and pasted article text, generates the AI summary, edits and publishes; the member opens the News page.
 
 ## Reflections
 Class reflections allow cohort members to capture and structure their session learnings:
@@ -130,9 +143,13 @@ This application ships strictly with zero sample or seed data. There are no plac
 ## Known Limitations and Future Enhancements
 
 ### Known Limitations
+- Sessions are not revoked on password change.
 - No login-attempt limiting.
+- The free Gemini tier has rate limits and AI answers can be slow (up to about 30 seconds).
+- Free-tier content may be used by Google to improve its products; users must not enter personal or confidential information.
+- Dates are shown in UTC.
+- The tutor does not browse the web and the news AI works only from pasted text.
 - Session cookie is Secure in production builds, so serve over HTTPS or use localhost.
-- Dates on the Members page are shown in UTC.
 
 ### Future Enhancements
 The following items are intentionally deferred for subsequent phases and future architecture iterations:
@@ -143,4 +160,4 @@ The following items are intentionally deferred for subsequent phases and future 
 - Multi-group and multi-tenant partitioning
 
 ## Project Status
-Phase 6 of 7 complete: collaboration news
+Phase 7 of 7 complete: first version
